@@ -1,0 +1,55 @@
+body {
+    font-size: 18px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+a {
+    background: yellow;
+    color: black;
+    text-decoration: none;
+}
+
+h1,h2,h3,p {
+    margin: 0;
+}
+
+.section {
+    margin-top: 1.5em;
+}
+
+.abstract {
+    margin-top: 0.6em;
+    margin-bottom: 0.6em;
+    font-style: italic;
+    font-size: 90%;
+}
+
+.postlink {
+    margin-top: 0.3em;
+}
+
+.postlink .date {
+    float: left;
+    font-style: italic;
+    width: 120px;
+}
+
+.postlink .desc {
+    margin-left: 120px;
+}
+
+#column {
+    margin: 2em auto 2em auto;
+    width: 50em;
+    font-size: 110%;
+}
+
+#footer {
+    margin-top: 2em;
+    border-top: 4px solid #eee;
+    font-size: 80%;
+}
+
+#contacts {
+    margin-top: 1em;
+}

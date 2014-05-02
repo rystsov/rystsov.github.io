@@ -1,0 +1,23 @@
+<html>
+<head>
+    <title>{{ page.title }}</title>
+
+    <link href="{{ site.url }}/css/common.css" rel="stylesheet">
+    {% for css in page.extra_css %}
+        <link href="{{ site.url }}/{{ css }}" rel="stylesheet">
+    {% endfor %}
+</head>
+<body>
+<div id="column">
+    <div>{{ content }}</div>
+    <div id="footer">
+        <div id="contacts">
+            Denis Rystsov (<a href="{{ site.url }}/files/rystsov.pdf">resume</a>)<br/>
+            <a href="https://twitter.com/rystsov">@rystsov</a><br/>
+            <a href="https://github.com/rystsov">GitHub Account</a><br/>
+            <a href="mailto:rystsov.denis@gmail.com">rystsov.denis@gmail.com</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
