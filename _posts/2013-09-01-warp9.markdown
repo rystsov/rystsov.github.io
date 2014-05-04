@@ -7,13 +7,13 @@ desc: "A reactive js GUI library"
 
 <h1>Warp9</h1>
 
-[Warp9](http://rystsov.github.io/warp9) is a yet another reactive javascript GUI library. I created it because all the reactive js libraries I had seen before have fundamental design flows that can't be fixed without rewriting the whole libraries. 
+[Warp9](http://rystsov.github.io/warp9) is a yet another reactive javascript GUI library. I created it because all the reactive js libraries I had seen before had fundamental design flows that couldn't be fixed without rewriting the whole libraries. 
 
 <h2>What is wrong with them?</h2>
 
 <h3>Templates don't scale up to interactive applications</h3>
 
-Initially templates are documents with placeholders... and that is fine for static sites. A program prepares data and a template engine fills the gaps in a template. We have different layers that interacts via a fixed interface -- common data. It is great because a designer and a programmer are free to organise their area of responsibility whatever they want while they respect the interface.
+Initially templates are documents with placeholders... and that is fine for static sites. A program prepares data and a template engine fills the gaps in a template. We have different layers that interact via a fixed interface -- common data. It is great because a designer and a programmer are free to organise their areas of responsibility any way they like while they respect the interface.
 
 The idyll is over when we add behaviour. Behaviour is the programmer's responsibility but it is highly coupled with representation. So we can't split the layers now and we lose the interface.
 
@@ -27,15 +27,15 @@ Frameworks that still use template based approach are [AngularJS](https://angula
 
 2-way binding is an awesome thing when you use it but it is a pain in the ass when you develop a library offering 2-way binding interface. If you aren't careful enough your users will meet [accidental memory leaks](http://rystsov.github.io/warp9/pages/competitors/leaks/leaks.html), [repeated diamond shape problem](http://rystsov.github.io/warp9/pages/competitors/diamond/diamond.html) & [observable inconsistent state](http://rystsov.github.io/warp9/pages/competitors/consistency/consistency.html).
 
-For example [Knockout](http://knockoutjs.com) use a straight forward implementation of the 2-way binding approach that leads to the all mentioned problems.
+For example [Knockout](http://knockoutjs.com) uses a straightforward implementation of the 2-way binding approach that leads to all the mentioned problems.
 
 <h2>Mix of markup and behaviour logic</h2>
 
-Separation of concerns doesn't mean separation of technologies. View and behaviour are coupled and if we put them in different files we don't avoid those coupling. We must face it and use another ways to deal with this complexity.
+Separation of technologies doesn't mean separation of concerns. View and behaviour are coupled and if we put them in different files we don't avoid the coupling. We must face it and use another ways to deal with complexity.
 
 From a software engineer perspective the best way to handle complexity is 
- * Abstraction - to break a system into smallest independent atoms, to find a similarity between them, to extract an idea of an atom and to reduce the amount of ideas to the minimum sufficient enough to describe the whole system. In a context of GUI the atoms are buttons, textboxes and etc. Since each atom is independent then it should contain view and behaviour both.
- * Composition - to combine several atoms into a new entity that can be used as an atom (if we omit the fact that it is composed). For instance, if look on an address book application, then an address record with a telephone number and an avatar is composed of primitive atoms but the record acts as an application specific atom. Those atoms is also known as components.
+ * Abstraction - to break a system into the smallest independent atoms, to find a similarity between them, to extract an idea of an atom and to reduce the amount of ideas to the minimum sufficient to describe the whole system. In a context of GUI the atoms are buttons, textboxes etc. Since each atom is independent it should contain both view and behaviour.
+ * Composition - to combine several atoms into a new entity that can be used as an atom (if we omit the fact that it is composed). For instance, if we look on an address book application, then an address record with a telephone number and an avatar is composed of primitive atoms but the record itself acts as an application specific atom. Those atoms are also known as components.
 
 The default ways to do *Abstraction* and *Composition* with code are object-oriented design and functional approach. If we put markup into code we can use these well known methods to deal with the complexity of modern web applications.
 
@@ -47,7 +47,7 @@ Mixing markup and behaviour doesn't mean that a designer should constantly edit 
 
 <h2>Reactivity</h2>
 
-Function programming shines when we talk about data transformations. Let us imagine for a while that we've returned to good old days where all web applications are static and that we need to render a list of addresses into a piece of html, we may end with this procedure
+Functional programming shines when we talk about data transformations. Let us imagine for a while that we've returned to good old times when all web applications are static. If we need to render a list of addresses into a piece of html, we may end with this procedure
 
 {% highlight javascript %}
 function renderStackedWidgets(listOfWidgets) { ... }
@@ -59,20 +59,20 @@ function renderAddresses(address) {
 
 If the `renderStackedWidgets` is provided by a library and we've already implemented the `renderAddress` then the implementation of function that renders stacked addresses is very straightforward.
 
-If we fast forward time to our days this code becomes insufficient because we missed the behaviour. Our list of addresses may be changed over time so we need to update the screen. We need to keep our transformation active all the way, just like in an spreadsheets. With it when you update one cell the others are updated automatically. Modern spreadsheets is a well known example of reactive programming. So we need add reactivity to keep the code simple. That is exactly what Warp9 does.
+If we fast-forward time to our days this code becomes insufficient because we missed the behaviour. Our list of addresses may be changed over time so we need to update the screen. We need to keep our transformation active all the way, just like in the spreadsheets. With it when you update one cell the others are updated automatically. Modern spreadsheets is a well known example of reactive programming. So we need to add reactivity to keep the code simple. That is exactly what Warp9 does.
 
 <h2>Warp9?</h2>
 
-I'm a fan of the Star Trek series, so I took the name from its universe. The Warp drive is invented after the modern reactive engines, makes possible to travel faster that light and it allows humanity to go where no man has been before. I think it is a good name for a reactive library that avoids common pitfalls of the reactive libraries.
+I'm a fan of the Star Trek series, so I took the name from its universe. The Warp drive invented after the modern reactive engines, makes it possible to travel faster than light and allows humanity to go where no man has been before. I think it is a good name for a reactive library that avoids common pitfalls of the reactive libraries.
 
 <h2>"Rocket science"</h2>
 
-I used a lot of interesting techniques during the development of Warp9. For example I had to maintain an explicit graph of dependencies to avoid [accidental memory leaks](http://rystsov.github.io/warp9/pages/competitors/leaks/leaks.html) and I had to propagated the changes through the graph in a breadth first approach to handle a [repeated diamond shape problem](http://rystsov.github.io/warp9/pages/competitors/diamond/diamond.html).
+I used a lot of interesting techniques during the development of Warp9. For example I had to maintain an explicit graph of dependencies to avoid [accidental memory leaks](http://rystsov.github.io/warp9/pages/competitors/leaks/leaks.html) and I had to propagate the changes through the graph in a breadth-first approach to handle a [repeated diamond shape problem](http://rystsov.github.io/warp9/pages/competitors/diamond/diamond.html).
 
 When I was working on [reactive primitives](http://rystsov.github.io/warp9/pages/docs/reactive_primitives.html) I dived into monads and monoids to support the reduce operation on a reactive lists. I've read a lot of articles and the most interesting were about treap, rope and finger-tree data structures and about an [incremental regular expressions](http://blog.sigfpe.com/2009/01/fast-incremental-regular-expression.html).
 
 <h2>Conclusion</h2>
 
-I've done this project to sharp my javascript skills and to learn the reactive paradigm. I think I managed pretty well: I avoid the common reactive pitfalls and my version of a [TodoMVC](http://rystsov.github.io/warp9/examples/todomvc/todomvc.html) is only 127 lines of code.
+I've done this project to sharp my javascript skills and to learn the reactive paradigm. I think I managed pretty well: I avoided the common reactive pitfalls and my version of a [TodoMVC](http://rystsov.github.io/warp9/examples/todomvc/todomvc.html) is only 127 lines of code.
 
-Nevertheless I haven't an intention to maintain and develop the project further. No, I don't think it is perfect. For example, if I could start again I would build Warp9 based on React.js to utilize the idea of virtual dom (just like [Om](http://swannodette.github.io/2013/12/17/the-future-of-javascript-mvcs)). It is all about time, I've done what I wanted and now it is time to learn something new or to do something that would have a bigger impact.
+Nevertheless I don't have an intention to maintain and develop the project further. No, I don't think it is perfect. For example, if I could start again I would build Warp9 based on React.js to utilize the idea of virtual DOM (just like [Om](http://swannodette.github.io/2013/12/17/the-future-of-javascript-mvcs)). It is all about time, I've done what I wanted and now it is time to learn something new or to do something that would have a bigger impact.
