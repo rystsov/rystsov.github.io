@@ -1,6 +1,7 @@
 ---
 layout: post
 title: rystsov::Transactions in MongoDB, Cassandra, Zookeeper and others
+name: Transactions in MongoDB, Cassandra, Zookeeper and others
 tags: ["misc"]
 ---
 

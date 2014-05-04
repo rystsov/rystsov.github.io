@@ -1,6 +1,7 @@
 ---
 layout: post
 title: rystsov::Warp9
+name: Warp9
 tags: ["pet"]
 desc: "A reactive js GUI library"
 ---

@@ -1,6 +1,7 @@
 ---
 layout: post
 title: rystsov::Nidaba
+name: Nidaba
 tags: ["pet"]
 desc: "A distributed scalable PKI"
 ---
