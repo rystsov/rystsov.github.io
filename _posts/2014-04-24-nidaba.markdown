@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Nidaba
+title: rystsov::Nidaba
 tags: ["pet"]
 desc: "A distributed scalable PKI"
 ---
@@ -17,7 +17,7 @@ I decided to design a system that doesn't have these disadvantages. This is how 
 
 Besides the mentioned properties Nidaba provides a stable price for certificate operations on the external markets via the supply and demand model.
 
-All notable details about the architecture I described in [the Nidaba whitepaper](http://nidaba-pki.org). Here I want to highlight an interesting analogy and to justify the name of the project.
+All notable details about the architecture I described in [the Nidaba whitepaper](http://nidaba-pki.org/files/nidaba.pdf). Here I want to highlight an interesting analogy and to justify the name of the project.
 
 <h2>Why I choose Nidaba to be the name</h2>
 
