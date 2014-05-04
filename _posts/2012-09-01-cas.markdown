@@ -1,0 +1,143 @@
+---
+layout: post
+title: Transactions in MongoDB, Cassandra, Zookeeper and others
+tags: ["misc"]
+---
+
+<h1>Transactions in MongoDB, Cassandra, Zookeeper and others</h1>
+
+Long long time ago Zookeeper [didn't support](http://blog.cloudera.com/blog/2011/11/apache-zookeeper-3-4-0-has-been-released/) atomic multiple updates. Project Voldemort haven't done so far. Why does it matter? Many real world applications have a relatively complex model, so non atomic writes may lead to data inconsistency especially in a concurrent/distributed environment. It is very very sad unless...
+
+<h2>...unless we implement transactions ourselves</h2>
+
+[Compare-and-set](http://en.wikipedia.org/wiki/Compare-and-swap) is the mother of many lock-free algorithms (including optimistic transactions), so any distributed storage that claims it supports CAS does atomic multiple updates. How?
+
+Let's have a look at a classic "real-world" example. We're working in a bank big enough to use a distributed datastorage to keep its user accounts. The current version of a software transferring money between accounts was written by people who didn't care about atomicity. Sometimes a money transferring procedure is interrupted during the process and money is withdrawn from one account but never reaches the other. So bank got a lot of lawsuits. We were hired to fix the problem. Thank you the holy spaghetti monster, the distributed storage supports CAS, so we'll use it to fix the problem.
+
+We inherit a very simple model consisting of an **account** type <span class="remark">an id and a balance fields</span> and a straight forward MongoDB-like procedure to change the account-typed objects.
+
+{% highlight json %}
+var account = {
+  id : ...,
+  balance : 600
+}
+db.accounts.update( 
+  { id: ... }, 
+  { balance:550 }
+);
+{% endhighlight %}
+
+First we add a `version` field and guard any change of an account with CAS on that field. It protects from changing an unseen value aka [ABA-problem](http://en.wikipedia.org/wiki/ABA_problem). Since the update operator returns the number of affected records we always know if our operation was successful.
+
+{% highlight json %}
+var account = {
+  id : ...,
+  version : 0,
+  value : {
+    balance : 600
+  }
+}
+db.accounts.update( 
+  { id: ..., version: 0 }, 
+  { version: 1, balance:550 }
+);
+{% endhighlight %}
+
+**Hereinafter all of our objects have version and any modification to the objects is processed with respect to it. To simplify the description I omit that any modification to any object may be refused but you should keep it in mind.**
+
+To resolve the atomicity issue we need to introduce a **transaction** type to the model...
+
+{% highlight json %}
+var tx = {
+  id : ...,
+  version : 0,
+  value : {
+    date: ..,
+    state: "created" // "created", "committed" or "failed"
+  }
+}
+{% endhighlight %}
+
+...and enrich our account type with two field `updated` and `tx`
+
+{% highlight json %}
+var account = {
+  id : ...,
+  version : 0,
+  value : {
+    balance : 600
+  },
+  updated : null,
+  tx : null
+}
+{% endhighlight %}
+
+`updated` has the same structure as the `value` field, may be null and holds a future value of `value` during a transaction
+
+`tx` is null or an id of the object representing the current transaction
+
+<h3>The algorithm</h3>
+
+It is easy to describe the algorithm, but it is harder to describe the algorithm in a way that its correctness is obvious. First I'll make some statements and definitions about the algorithm. I expect you to return to them after I introduce the algorithm and to say something like "Oh, now I see why it is true" and "Oh, I understand its correctness".
+
+ - the `value` field always contains a state that is or was actual
+ - the read operation may change data in the storage
+ - the read operation is idempotent
+ - an object can be in one of three states: `c` is for clean, `d` is for dirty uncommitted and `dc` is for dirty committed
+ - when object starts participating in a transaction it must be in the `c` state
+ - possible transitions between states: 
+   <span class="code">c<sub>n</sub></span>&#8594;<span class="code">d<sub>n</sub></span>, 
+   <span class="code">d<sub>n</sub></span>&#8594;<span class="code">c<sub>n</sub></span>,
+   <span class="code">d<sub>n</sub></span>&#8594;<span class="code">dc<sub>n+1</sub></span>,
+   <span class="code">dc<sub>n+1</sub></span>&#8594;<span class="code">c<sub>n+1</sub></span>
+ - transition <span class="code">d<sub>n</sub></span>&#8594;<span class="code">dc<sub>n+1</sub></span> is atomic
+ - possible transitions during transaction: 
+   <span class="code">c<sub>n</sub></span>&#8594;<span class="code">d<sub>n</sub></span>, 
+   <span class="code">d<sub>n</sub></span>&#8594;<span class="code">dc<sub>n+1</sub></span>,
+   <span class="code">dc<sub>n+1</sub></span>&#8594;<span class="code">c<sub>n+1</sub></span>
+ - a possible transition during reads:
+   <span class="code">d<sub>n</sub></span>&#8594;<span class="code">c<sub>n</sub></span>
+ - if there is a <span class="code">d<sub>n</sub></span>&#8594;<span class="code">c<sub>n</sub></span> transition, the transaction initiated <span class="code">c<sub>n</sub></span>&#8594;<span class="code">d<sub>n</sub></span> fails to commit
+ - after each operation the database has a consistent state
+ - when the read fails we must reread
+ - if we *abandon a transaction*/*it fails* before the commit we don't care -- it is automatically rollbacked
+ - if a transaction fails during the commit we should check if it has passed and if it hasn't then it is automatically rollbacked
+
+<h3>States</h3>
+
+An object has the **clean state** when the object has just been created or when a transaction affecting it successfully passed. A clean object's fields `updated` and `tx` are null.
+
+An object has the **dirty uncommitted state** during a transaction: `updated` field contains a new value, `tx` refers to the transaction object and the transaction object is in a `created` state.
+
+The third state is the **dirty committed state**. It describes a case when the transaction was committed but hasn't yet cleaned its utility data: `updated` field contains new version of an object, `tx` refers to the transaction object and its state is `committed`
+
+<h3>Transaction</h3>
+
+1. Read objects that are participating in a transaction
+2. Create a transaction object in a `created` state
+3. For each object update its `updated` field to a new value and `tx` to the transaction object's id
+4. Change the transaction object state to `committed`
+5. For each object set `value` field to the new value, `updated` and `tx` fields to null
+6. Delete the transaction object
+
+After the 4th step the transaction is committed, the rest steps just clean the mess
+
+<h3>Read</h3>
+
+1. Raw-read an object from the storage
+2. If it is in clean state -- return it
+3. If it is in dirty committed state then set its `value` field to `updated` value, set `updated` and `tx` fields to null, save the object to the storage and return the object
+4. If it is in dirty uncommitted state then:
+   - set the corresponding transaction object to `failed` state and save
+   - set `updated` and `tx` field to null and save
+   - return the object
+
+I think it is pretty easy to prove transaction properties - just check that all the statements I made above are true and use them to prove atomicity.
+
+<h3>Conclusion</h3>
+
+We have just added transactions to a distributed storage with CAS support and saved the bank from going bankrupt.
+
+Back to the reality. I want to warn you to be very carefull about statements of companies behind the distributed storages since the companies may lie, deceive or err. It is better to take a look on the independent studies like [Call me maybe series](http://aphyr.com/tags/jepsen) or do it yourself.
+
+List of distributed storages that claims they support CAS: MongoDB, Project Voldemort, Cassandra and HBase.

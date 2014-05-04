@@ -1,0 +1,28 @@
+---
+layout: post
+title: Nidaba
+tags: ["pet"]
+desc: "A distributed scalable PKI"
+---
+
+<h1>Nidaba</h1>
+
+Nidaba is a distributed scalable public key infrastructure that can be used as a distr. DNS, a distr. authentication system or a distr. certificate authority.
+
+Some time ago I asked myself how the way we do software would change if each user had a private server. I was thinking about this for a while and came to idea that a distr. authentication is vital for such realty.
+
+I started digging and realised that neither Namecoin nor Twister provide important properties, such as protection from cyber squatters & vandals, resistance to the tragedy of the common and scalability.
+
+I decided to design a system that doesn't have these disadvantages. This is how Nidaba was born.
+
+Besides the mentioned properties Nidaba provides a stable price for certificate operations on external market via supply and demand model.
+
+All notable details about the architecture I describe in the Nidaba whitepaper. Here I want to highlight an interesting analogy and to justify the name of the project.
+
+<h2>Why I choose Nidaba to be the name</h2>
+
+There is a classic analogy between gold and Bitcoin. We can imagine the active nodes of the Bitcoin network as the miners which mine the same gold-field. It was reach at the beginning of mining but it becomes unproductive with time. As you see there is a limited amount of <s>gold</s> bitcoins.
+
+With Nidaba I use another analogy, the internal currency is a crop and the active nodes are farmers. Just like a crop the internal currency may spoil. Also the supply of the crop/internal currency can be raised at any time if more people become farmers/active nodes, but this would drop the price for the crop/currency on the market and the inefficiency farmers/active nodes give up farming/supporting the network.
+
+Nidaba is the Sumerian goddess of writing and harvest. Both this activities match the ideas behind the system. Blockchain keeps all the history and [the history](http://en.wikipedia.org/wiki/Recorded_history) itself begins with the invention of writing. The link between the distributed PKI and harvest I highlighted in the previous paragraph.
