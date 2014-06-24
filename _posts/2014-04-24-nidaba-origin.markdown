@@ -1,14 +1,11 @@
 ---
-layout: post
-title: rystsov::Nidaba
-name: Nidaba
-tags: ["pet"]
-desc: "A distributed scalable PKI"
+layout: nidaba
+title: rystsov::Nidaba::origin
+name: "The origin of Nidaba"
+tags: ["nidaba"]
 ---
 
-<h1>Nidaba</h1>
-
-Nidaba is a distributed scalable public key infrastructure that can be used as a DNS, a authentication system or a certificate authority.
+<h1>The origin of Nidaba</h1>
 
 Some time ago I asked myself how the way we do software would change if each user had a private server. I was thinking about this for a while and came to the idea that a distributed authentication is vital for such realty.
 

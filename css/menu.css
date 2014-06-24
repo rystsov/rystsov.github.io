@@ -1,0 +1,9 @@
+.menu .home {
+    font-size: 32;
+    font-variant: small-caps;
+    margin-right: 1em;
+}
+
+.menu .home a {
+    background-color: white;
+}
