@@ -8,12 +8,16 @@ desc: "A distributed scalable PKI"
 
 <div class="section">
     <h1>Nidaba</h1>
-    <div class="abstract">Nidaba is a distributed scalable public key infrastructure that can be used as a DNS, a authentication system or a certificate authority.</div>
+    <div class="abstract">
+        <p>Nidaba is a distributed scalable public key infrastructure that can be used as a DNS, a authentication system or a certificate authority. Please find details on the <a href="http://nidaba-pki.org/">Nidaba web-site</a></p>
+
+        <p>Below are some posts I wrote for the Nidaba's blog.</p>
+    </div>
     <div class="postlinks">
-        {% for post in site.tags.nidaba %}
+        {% for post in site.data.nidaba %}
         <div class="postlink">
-            <div class="date">{{ post.date | | date: "%Y-%m-%d" }}</div>
-            <a href="{{ post.url }}">{{ post.name }}</a>
+            <div class="date">{{ post.date }}</div>
+            <a href="{{ post.url }}">{{ post.title }}</a>
         </div>
         {% endfor %}
     </div>
