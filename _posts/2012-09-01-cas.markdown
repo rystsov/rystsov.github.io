@@ -9,7 +9,7 @@ tags: ["misc"]
 
 Many distributed key value storages don't support atomic multiple updates e.g. Project Voldemort or older versions of Zookeeper. Bud real world applications have a complex model and a lot of concurrent users so non atomic writes lead to inconsistency. It would be a problem...
 
-<h2>...unless we could implement atomic writes ourselves</h2>
+<h2>...if we couldn't implement atomic writes ourselves</h2>
 
 [Compare-and-set](http://en.wikipedia.org/wiki/Compare-and-swap) is the mother of many lock-free algorithms (including optimistic transactions), so any distributed storage that claims it supports CAS does atomic multiple updates. How?
 
