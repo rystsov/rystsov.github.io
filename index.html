@@ -6,10 +6,9 @@ title: Rystsov's site
 <p>Hello, my name is Denis Rystsov and this is my site. I love to dream, think, travel and work on complicated problems that may lead to aha!&nbsp;moments.</p>
 
 <div class="section">
-    <h1>Pet projects</h1>
-    <div class="abstract">Sometimes my ideas can't be realised at work. As long as it is legal I work on them in my spare time. I do it because I belive that they are important and may impact the world or just because I want to learn something new.</div>
+    <h1>Misc</h1>
     <div class="postlinks">
-        {% for post in site.tags.pet %}
+        {% for post in site.tags.misc %}
         <div class="postlink">
             <div class="date">{{ post.date | | date: "%Y-%m-%d" }}</div>
             <a href="{{ post.url }}">{{ post.name }}</a>
@@ -20,9 +19,10 @@ title: Rystsov's site
 </div>
 
 <div class="section">
-    <h1>Misc</h1>
+    <h1>Past (inactive) pet projects</h1>
+    <div class="abstract">Sometimes my ideas can't be realised at work. As long as it is legal I work on them in my spare time. I do it because I belive that they are important and may impact the world or just because I want to learn something new.</div>
     <div class="postlinks">
-        {% for post in site.tags.misc %}
+        {% for post in site.tags.pet %}
         <div class="postlink">
             <div class="date">{{ post.date | | date: "%Y-%m-%d" }}</div>
             <a href="{{ post.url }}">{{ post.name }}</a>
