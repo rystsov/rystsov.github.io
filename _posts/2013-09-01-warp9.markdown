@@ -4,6 +4,7 @@ title: rystsov::Warp9
 name: Warp9
 tags: ["pet"]
 desc: "A reactive js GUI library"
+abstract: "warp9-desc.html"
 ---
 
 <h1>Warp9</h1>
