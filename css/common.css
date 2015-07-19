@@ -24,6 +24,21 @@ h1,h2,h3,p {
     font-size: 90%;
 }
 
+.abstract-center {
+    max-width: 600px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.abstract-h1 {
+    font-style: normal;
+    font-weight: bold;
+}
+
+.it {
+    font-style: italic;
+}
+
 .postlink {
     margin-top: 0.3em;
 }
