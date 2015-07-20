@@ -22,3 +22,7 @@ h3 {
 .code {
     font-family: monospace;
 }
+
+#low_internet {
+	margin-top: 2em;
+}

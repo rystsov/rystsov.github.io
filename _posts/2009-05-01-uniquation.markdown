@@ -4,6 +4,7 @@ title: rystsov::Uniquation
 name: Uniquation
 tags: ["pet"]
 desc: "A math search engine"
+has_comments: true
 ---
 
 <h1>Uniquation</h1>
