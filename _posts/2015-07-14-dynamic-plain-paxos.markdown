@@ -3,6 +3,7 @@ layout: post
 title: rystsov::Dynamic Plain Paxos
 name: Dynamic Plain Paxos
 tags: ["misc"]
+has_comments: true
 ---
 
 <div class="abstract-center">
