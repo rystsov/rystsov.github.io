@@ -35,8 +35,8 @@ Since engineers need an ability to replace, to remove or to add a server to a cl
 
 This equivocation explains why paxos may be made simple (synod) and moderately complex (multi-paxos) at the same time.
 
-I believe that we, engineers, must fight complexity every moment. So I really don't like that we are forced to build systems around multi-paxos instead of paxos just to achieve desired operational characteristics. Moreover I felt the complexity of multi-paxos doesn't correspond to the complexity of the problem it solves. It gave me a courage to design [an extension of the plain paxos]({{ site.url }}/files/dynamic-plain-paxos.pdf) that solves the third problem but stays as close as possible to the plain paxos.
+I believe that we, engineers, must fight complexity every moment. So I really don't like that we are forced to build systems around multi-paxos instead of paxos just to achieve desired operational characteristics. Moreover I felt the complexity of multi-paxos doesn't correspond to the complexity of the problem it solves. It gave me courage to design [an extension of the plain paxos]({{ site.url }}/files/dynamic-plain-paxos.pdf) that solves the third problem but stays as close as possible to the plain paxos.
 
-I used an old fashioned way to prove the correctness of the algorithm and I'm pretty sure about the proof but I can't exclude a possibility of mistake. Of cause I asked several smart fellows to review the proof and they also didn't find any flow. But it would be better if more people would try to compromise it.
+*I used an old fashioned way to prove the correctness of the algorithm and I'm pretty sure about the proof but I can't exclude a possibility of mistake. Of cause I asked several smart fellows to review the proof and they also didn't find any flow. But it would be better if more people would try to compromise it.*
 
 In the upcoming posts I want to demonstrate how to design distributed systems around Dynamic Plain Paxos instead of Multi-Paxos and to create a TLA+ spec.
