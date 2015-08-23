@@ -20,5 +20,6 @@ Hopefully this task is already solved by the paxos consensus algorithm. People u
 
 The description of the register is written in a python inspired pseudocode. I assume that every write to an instance variable is intercepted, redirected to a persistent storage and fsync-ed. Of course every read from an instance variable reads from the storage. The pseudocode follows the algorithm described in the [Paxos Made Simple](http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf) paper by Leslie Lamport, please read it to understand the idea behind the code and see the proof.
 
+&nbsp;
 
 {% gist rystsov/1614f7499d0aca0f8fb4 %}
