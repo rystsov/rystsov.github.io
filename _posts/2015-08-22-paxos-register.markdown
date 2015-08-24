@@ -3,7 +3,7 @@ layout: post
 title: rystsov::The Paxos Register
 name: The Paxos Register
 tags: ["misc"]
-desc: "Creating a write-once distributed fault-tolerance register"
+desc: "Design of a write-once distributed fault-tolerance register"
 has_comments: true
 ---
 
