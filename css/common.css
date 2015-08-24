@@ -53,6 +53,10 @@ h1,h2,h3,p {
     margin-left: 120px;
 }
 
+.post_desc {
+    font-style: italic;
+}
+
 #column {
     margin: 2em auto 2em auto;
     max-width: 50em;
