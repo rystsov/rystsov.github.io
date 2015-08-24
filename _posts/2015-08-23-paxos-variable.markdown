@@ -3,7 +3,7 @@ layout: post
 title: rystsov::The Paxos Variable
 name: The Paxos Variable
 tags: ["misc"]
-desc: "Updating the registor into a distributed fault-tolerance variable with compare-and-set (CAS) concurrency control mechanism"
+desc: "How to update the registor into a distributed fault-tolerance variable with compare-and-set (CAS) concurrency control mechanism"
 has_comments: true
 ---
 
