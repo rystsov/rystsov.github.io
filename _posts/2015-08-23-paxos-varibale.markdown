@@ -8,7 +8,7 @@ has_comments: true
 
 <h1>The Paxos Variable</h1>
 
-In the previous article I showed how to create a write-once distributed register. But in real life we usually want to mutate state. So Let's fix it and design a distributed paxos based variable.
+In the previous [article]({% post_url 2015-08-22-paxos-register %}) I showed how to create a write-once distributed register. But in real life we usually want to mutate state. So Let's fix it and design a distributed paxos based variable.
 
 Distributed variable is a little bit more complex system than the register but it uses the same idea so if you understand the register then it should be easy to you to understand the variable's design.
 
