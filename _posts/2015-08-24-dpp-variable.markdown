@@ -3,15 +3,15 @@ layout: post
 title: rystsov::dynamic distributed register
 name: Dynamic Distributed Register
 tags: ["misc"]
-desc: "Updates distributed CAS register to work in the dynamic environments"
+desc: "Updates distributed CAS register to work in the dynamic environment"
 has_comments: true
 ---
 
 <h1>Dynamic Distributed Register</h1>
 
-Distributed register that we designed in the [previous post]({% post_url 2015-08-23-paxos-variable %}) has an obvious weakness: it works only with the static set of nodes. We know that hardware malfunction are unavoidable and eventually all the nodes will be broken. We need a mechanism to add (remove) nodes to the cluster to let the register to outlive the nodes it runs on. The [Dynamic Plain Paxos]({% post_url 2015-07-19-dynamic-plain-paxos %}) article explains how we can do it with plain paxos, lets adapt it to use with the register.
+Distributed register that we designed in the [previous post]({% post_url 2015-08-23-paxos-variable %}) has an obvious weakness: it works only with the static set of nodes. We know that hardware malfunction are unavoidable and eventually all the nodes will be broken. We need a mechanism to add (remove) nodes to the cluster to let the register to outlive the nodes it runs on. The [Dynamic Plain Paxos]({% post_url 2015-07-19-dynamic-plain-paxos %}) article explains how we can do it with plain paxos, we need to adapt it to use with the register.
 
-First we take a look on the coordinator which manages the process of changing membership.
+Lets take a look on the coordinator which manages the process of changing the membership. Compared to the the article we don't use filters. Filters were added to make the proof understandable but if you think about them then you will notice that a system with filters behaves the same way as a system without them so we can omit them during the implementation.
 
 {% gist rystsov/0644f6cf7b45f5a72e81 %}
 
