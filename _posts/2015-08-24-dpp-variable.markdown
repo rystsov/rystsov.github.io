@@ -1,13 +1,13 @@
 ---
 layout: post
-title: rystsov::dynamic distributed register
-name: Dynamic Distributed Register
+title: rystsov::distributed register for the dynamic environment
+name: Distributed register for the dynamic environment
 tags: ["distr"]
 desc: "Updates distributed CAS register to work in the dynamic environment"
 has_comments: true
 ---
 
-<h1>Dynamic Distributed Register</h1>
+<h1>Distributed register for the dynamic environment</h1>
 
 Distributed register that we designed in the [previous post]({% post_url 2015-08-23-paxos-variable %}) has an obvious weakness: it works only with the static set of nodes. We know that hardware malfunction are unavoidable and eventually all the nodes will be broken. We need a mechanism to add (remove) nodes to the cluster to let the register to outlive the nodes it runs on. The [Dynamic Plain Paxos]({% post_url 2015-07-19-dynamic-plain-paxos %}) article explains how we can do it with plain paxos, we need to adapt it to use with the register.
 
