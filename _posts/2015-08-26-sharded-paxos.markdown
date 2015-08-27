@@ -2,7 +2,7 @@
 layout: post
 title: rystsov::Paxos-based sharded ordered key value store with CAS
 name: Paxos-based sharded ordered key value store with CAS
-tags: ["misc"]
+tags: ["distr"]
 desc: "How to run an instance of paxos register per per key to get a key value storage and shard it on the fly without loosing consistency"
 has_comments: true
 ---
