@@ -9,6 +9,10 @@ a {
     text-decoration: none;
 }
 
+.anchor {
+    background: none;
+}
+
 h1,h2,h3,p {
     margin: 0;
 }
