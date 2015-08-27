@@ -7,7 +7,7 @@ desc: "Design of a write-once distributed fault-tolerance register"
 has_comments: true
 ---
 
-<h1>The Paxos Register</h1>
+<h1>Write-once distributed register</h1>
 
 Imagine a service that provides an API to read and to write a write-once register with the following properties:
 
