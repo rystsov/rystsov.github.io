@@ -7,7 +7,7 @@ desc: "How to update the write-once registor into a distributed fault-tolerance 
 has_comments: true
 ---
 
-<h1>Distributed register</h1>
+<h1>Distributed mutable register</h1>
 
 In the previous [article]({% post_url 2015-08-22-paxos-register %}) I showed how to create a write-once distributed register. But in real life we usually want to mutate state. So Let's fix it and design a mutable register.
 
