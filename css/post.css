@@ -30,3 +30,9 @@ h3 {
 #low_internet {
 	margin-top: 2em;
 }
+
+.sharded-paxos-pic {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
