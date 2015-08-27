@@ -23,22 +23,22 @@ The next step is to support sharding.
 
 Imagine a key value storage that lives on three nodes.
 
-<div><img src="{{ site.url }}/images/sharded-paxos-1.png"/></div>
+<div class="sharded-paxos-pic"><img src="{{ site.url }}/images/sharded-paxos-1.png"/></div>
 
 Some day because of the storage usage or high load we will decide to split the storage. So we peek a key from the key space and split the key/value storage into two logical group. First group (A) contains key less-or-equal to the key and the second group contains the rest (B).
 
-<div><img src="{{ site.url }}/images/sharded-paxos-2.png" /></div>
+<div class="sharded-paxos-pic"><img src="{{ site.url }}/images/sharded-paxos-2.png" /></div>
 
 Then we add a node to the B group.
 
-<div><img src="{{ site.url }}/images/sharded-paxos-3.png" /></div>
+<div class="sharded-paxos-pic"><img src="{{ site.url }}/images/sharded-paxos-3.png" /></div>
 
 And remove a node from it.
 
-<div><img src="{{ site.url }}/images/sharded-paxos-4.png" /></div>
+<div class="sharded-paxos-pic"><img src="{{ site.url }}/images/sharded-paxos-4.png" /></div>
 
 And repeat the process until we get A and B clusters working on the different set of nodes.
 
-<div><img src="{{ site.url }}/images/sharded-paxos-5.png" /></div>
+<div class="sharded-paxos-pic"><img src="{{ site.url }}/images/sharded-paxos-5.png" /></div>
 
 As a result we split the storage without stopping the cluster or loosing consistency.
