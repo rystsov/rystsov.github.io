@@ -1,17 +1,17 @@
 ---
 layout: post
-title: rystsov::The Paxos Variable
-name: The Paxos Variable
+title: rystsov::Distributed mutable register
+name: Distributed mutable register
 tags: ["distr"]
-desc: "How to update the registor into a distributed fault-tolerance variable with compare-and-set (CAS) concurrency control mechanism"
+desc: "How to update the write-once registor into a distributed fault-tolerance mutable register with the compare-and-set (CAS) concurrency control mechanism"
 has_comments: true
 ---
 
-<h1>The Paxos Variable</h1>
+<h1>Distributed register</h1>
 
-In the previous [article]({% post_url 2015-08-22-paxos-register %}) I showed how to create a write-once distributed register. But in real life we usually want to mutate state. So Let's fix it and design a distributed paxos based variable.
+In the previous [article]({% post_url 2015-08-22-paxos-register %}) I showed how to create a write-once distributed register. But in real life we usually want to mutate state. So Let's fix it and design a mutable register.
 
-Distributed variable is a little bit more complex system than the register but it uses the same idea so if you understand the register then it should be easy to you to understand the variable's design.
+Distributed mutable register is a little bit more complex system than the write-once register but it uses the same idea so if you understand the register then it should be easy to you to understand the current design.
 
 The basic idea is to use a sequence of ordered registers to emulate a variable. For example to write a value we write it to the register with the lowest id among empty registers. To read a value we read it from the register with the highest id among filled registers.
 
