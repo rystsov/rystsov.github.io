@@ -19,7 +19,7 @@ Up to this point we designed a replicated key/value with strong consistency and 
 
 The next step is to support sharding.
 
-<h2>Paxos-based sharded ordered key value store with CAS</h2>
+<h2>Sharding</h2>
 
 Imagine a key value storage that lives on three nodes.
 
