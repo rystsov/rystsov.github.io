@@ -11,6 +11,17 @@ title: Rystsov's site
 
 <div class="section">
     <h1>Blog</h1>
+    <h3>Designing a distributed key/value storage</h3>
+    <div class="postlinks">
+        {% for post in site.tags.distr %}
+        <div class="postlink">
+            <div class="date">{{ post.date | | date: "%Y-%m-%d" }}</div>
+            <a href="{{ post.url }}">{{ post.name }}</a>
+            <div class="desc post_desc">{{ post.desc }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    <h3>Rest</h3>
     <div class="postlinks">
         {% for post in site.tags.misc %}
         <div class="postlink">
