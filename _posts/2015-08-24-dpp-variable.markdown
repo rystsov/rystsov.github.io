@@ -2,7 +2,7 @@
 layout: post
 title: rystsov::dynamic distributed register
 name: Dynamic Distributed Register
-tags: ["misc"]
+tags: ["distr"]
 desc: "Updates distributed CAS register to work in the dynamic environment"
 has_comments: true
 ---
