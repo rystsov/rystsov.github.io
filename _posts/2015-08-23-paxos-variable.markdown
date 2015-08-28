@@ -13,13 +13,13 @@ In the previous [article]({% post_url 2015-08-22-paxos-register %}) I showed how
 
 Distributed mutable register is a little bit more complex system than the write-once register but it uses the same idea so if you understand the register then it should be easy to you to understand the current design.
 
-The basic idea is to use a sequence of ordered registers to emulate a variable. For example to write a value we write it to the register with the lowest id among empty registers. To read a value we read it from the register with the highest id among filled registers.
+The basic idea is to use a sequence of ordered registers to emulate a variable. For example to write a value we write it to the register with the lowest ID among empty registers. To read a value we read it from the register with the highest ID among filled registers.
 
-Distributed system is by definition is a concurrent system too so its very important to provide concurrency control mechanisms like a compare-and-set (CAS) primitive. To support CAS primitive we must prevent modifications of the registers if a register with a higher is has already chosen a value. We can achieve it if maintain serializability between any successful register's modifications. Hopefully we can do it if make the acceptors to use the same promise. Let's take a look on the new acceptor's methods.
+Distributed system is by definition is a concurrent system too so its very important to provide concurrency control mechanisms like a compare-and-set (CAS) primitive. To support CAS primitive we must prevent modification of the past, e.g. edit of registers if a register with a higher ID has already chosen a value. We can achieve it by maintaining serializability between any successful register's modifications. Hopefully we can do it if we make the acceptors use the same promise. Let's take a look on the new acceptor's methods.
 
 {% gist rystsov/a45793daa1662a921479 %}
 
-You may be surprised since you don't see a sequence of the registers. Well, we always are interested only in the filled register with the largest id so we don't store the whole sequence.
+You may be surprised since you don't see a sequence of the registers. Well, we always are interested only in the filled register with the largest ID so we don't store the whole sequence.
 
 The API consist of two functions
 
