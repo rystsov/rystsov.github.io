@@ -13,7 +13,7 @@ To build a key value storage each node runs a new instance of Paxos register eac
 
 1. Increase the quorum size.
 2. Generate an event on each node.
-3. Fetch all keys from the nodes up to the event, union them and sync all of them. Of course this operation may be optimized by batching and parallel processing.
+3. Fetch all keys from the nodes up to the event, union them and sync all of them. Of course this operation may be optimized by batching and by parallel processing.
 4. Add a new node to the set of nodes.
 
 Up to this point we designed a replicated key/value with strong consistency and per key test-and-set concurrency control primitive. Since the whole dataset fits one node nothing prevents us from maintaining the order on keys and support range queries.
