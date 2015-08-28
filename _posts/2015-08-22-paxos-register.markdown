@@ -9,7 +9,7 @@ has_comments: true
 
 <h1>Write-once distributed register</h1>
 
-Imagine a service that provides an API to read and to write a write-once register (explain what it is) with the following properties:
+Imagine a service that provides an API to read and to write a write-once register (a variable that can be set only once) with the following properties:
 
 1. If a write request succeeds then any consequent write should fail.
 2. If a value is written then any consequent read must return the value or fail.
