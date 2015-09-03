@@ -15,7 +15,7 @@ Many distributed key value storages don't support atomic multiple updates e.g. P
 
 [Compare-and-set](http://en.wikipedia.org/wiki/Compare-and-swap) is the mother of many lock-free algorithms (including optimistic transactions), so any distributed storage that claims it supports CAS does atomic multiple updates. How?
 
-Let's have a look at a classic "real-world" example. We're working in a bank big enough to use a distributed datastorage to keep its user accounts. The current version of a software transferring money between accounts was written by people who didn't care about atomicity. Sometimes a money transferring procedure is interrupted during the process and money is withdrawn from one account but never reaches the other. So bank got a lot of lawsuits. We were hired to fix the problem. Thank you the holy spaghetti monster, the distributed storage supports CAS, so we'll use it to fix the problem.
+Let's have a look at a classic "real-world" example. We're working in a bank big enough to use a distributed datastorage to keep its user accounts. The current version of a software transferring money between accounts was written by people who didn't care about atomicity. Sometimes a money transferring procedure is interrupted during the process and money is withdrawn from one account but never reaches the other. So bank got a lot of lawsuits. We were hired to fix the problem. Hopefully the distributed storage supports CAS, so we'll use it to fix the problem.
 
 We inherit a very simple model consisting of an **account** type <span class="remark">an id and a balance fields</span> and a straight forward MongoDB-like procedure to change the account-typed objects.
 
