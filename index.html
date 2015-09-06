@@ -11,28 +11,14 @@ title: Rystsov's site
 
 <div class="section">
     <h1>Blog</h1>
+    {% include postlinks.html posts=site.tags.pre_distr %}
     <div class="key_value_design">
       <h3><a id="distr_key_value" class="anchor">Designing a distributed key/value storage</a></h3>
       <div class="abstract">A series of posts describing how to design a distributed key/value storage</div>
-      <div class="postlinks">
-          {% for post in site.tags.distr reversed %}
-          <div class="postlink">
-              <div class="date">{{ post.date | | date: "%Y-%m-%d" }}</div>
-              <a href="{{ post.url }}">{{ post.name }}</a>
-              <div class="desc post_desc">{{ post.desc }}</div>
-          </div>
-          {% endfor %}
-      </div>
+      {% assign distr = site.tags.distr | reverse %}
+      {% include postlinks.html posts=distr %}
     </div>
-    <div class="postlinks">
-        {% for post in site.tags.misc %}
-        <div class="postlink">
-            <div class="date">{{ post.date | | date: "%Y-%m-%d" }}</div>
-            <a href="{{ post.url }}">{{ post.name }}</a>
-            <div class="desc post_desc">{{ post.desc }}</div>
-        </div>
-        {% endfor %}
-    </div>
+    {% include postlinks.html posts=site.tags.misc %}
 </div>
 
 <div class="section">

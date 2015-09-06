@@ -1,0 +1,9 @@
+<div class="postlinks">
+    {% for post in include.posts %}
+    <div class="postlink">
+        <div class="date">{{ post.date | | date: "%Y-%m-%d" }}</div>
+        <a href="{{ post.url }}">{{ post.name }}</a>
+        <div class="desc post_desc">{{ post.desc }}</div>
+    </div>
+    {% endfor %}
+</div>
