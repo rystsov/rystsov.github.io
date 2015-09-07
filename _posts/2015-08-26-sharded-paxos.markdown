@@ -3,13 +3,13 @@ layout: post
 title: rystsov::Paxos-based sharded ordered key value store with CAS
 name: Paxos-based sharded ordered key value store with CAS
 tags: ["distr"]
-desc: "How to run an instance of paxos register per per key to build a key value storage and how to shard it on the fly without loosing consistency"
+desc: "How to run an instance of paxos variable per key to build a key value storage and how to shard it on the fly without loosing consistency"
 has_comments: true
 ---
 
 <h1>Paxos-based sharded ordered key value store with CAS</h1>
 
-To build a key value storage each node runs a new instance of Paxos register each time when the node receives a get or put request for an unseen key and redirects all further requests related to the key to that register. Of course different instances on the same node should share the quorum size and the set of nodes and use unified membership change mechanism which generalises the Paxos variable's version to work with a dynamic set of Paxos registers. For example its <code>2n+1 to 2n+2</code> transition is:
+To build a key value storage each node runs a new instance of Paxos variable each time when the node receives a get or put request for an unseen key and redirects all further requests related to the key to that variable. Of course different instances on the same node should share the quorum size and the set of nodes and use unified membership change mechanism which generalises the Paxos variable's version to work with a dynamic set of Paxos variables. For example its <code>2n+1 to 2n+2</code> transition is:
 
 1. Increase the quorum size.
 2. Generate an event on each node.
