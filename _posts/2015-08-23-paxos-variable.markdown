@@ -1,9 +1,9 @@
 ---
 layout: post
-title: rystsov::Distributed register
-name: Distributed register
+title: rystsov::Distributed variable
+name: Distributed variable
 tags: ["distr"]
-desc: "How to update the write-once registor into a distributed fault-tolerance mutable register with the compare-and-set (CAS) concurrency control mechanism"
+desc: "How to update the write-once distribted switch into a distributed variable with a compare-and-set (CAS) concurrency control mechanism"
 has_comments: true
 ---
 
