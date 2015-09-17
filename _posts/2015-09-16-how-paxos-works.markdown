@@ -78,3 +78,9 @@ Let's start with the acceptors.
 As you can see we defined two endpoints. Both of them correspond to the rounds of proposal-acceptors we observed on the sequence diagram.
 
 {% gist rystsov/ca9d195b2737039faaf3 %}
+
+## The proof of the correctness
+**What we prove?** Correctness. 
+**How we prove?** Reason about event space using the program as constarints between events.
+
+Events: emit_accepted, emit_promised, emit_prepared and emit_executed.
