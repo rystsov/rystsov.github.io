@@ -71,6 +71,10 @@ The correctness will be proved below in the post.
 
 The description of the switch is written in a Python inspired pseudocode. I assume that every write to an instance variable is intercepted, redirected to a persistent storage and fsync-ed. Of course every read from an instance variable reads from the storage.
 
+Let's start with the acceptors.
+
 {% gist rystsov/44b25528e74bb617726d %}
+
+As you can see we defined two endpoints. Both of them correspond to the rounds of proposal-acceptors we observed on the sequence diagram.
 
 {% gist rystsov/ca9d195b2737039faaf3 %}
