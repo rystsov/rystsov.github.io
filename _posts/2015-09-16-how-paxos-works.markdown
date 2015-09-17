@@ -54,4 +54,10 @@ No, proposals should be able to generate a unique ID for every request (this ID 
 
 ## Ok, how proposal and acceptors communicate to agree on the state's change?
 
+Let's take a look on how a Paxos-based distributed system handles a state change request. In typical case it looks like the
+following diagram.
+
 <img src="{{ site.url }}/images/paxos-seq.png" width="600" class="center-pic"/>
+
+On the diagram we see two rounds of proposal-acceptors communications. Also we can esimane that for one change the system 
+generates from `4f+6` to `8f+6` where `f` is a number of failures that the system can tolerate.
