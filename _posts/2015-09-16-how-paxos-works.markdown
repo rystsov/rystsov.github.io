@@ -11,10 +11,10 @@ has_comments: true
 <h1 align="center">A memo on how Paxos works</h1>
 
 <p class="it"><span class="abstract-h1">Abstract. </span>
-A couple of months later after I understand Paxos I realised that I can't reproduce the proof, so I read PMS a couple of 
-time until I understand it once again. To avoid this situation in the future I wrote this memo and hope that the next time
-I'll do in one pass.</p>
+I had understood Paxos. A couple of months later I realised that I can't reproduce the proof, so I read Paxos Made Simple article several times until I understood it once again. To avoid this situation in the future I wrote this memo and hope that the next time I'll revise the algorithm in one pass.</p>
 </div>
+
+## What is Paxos?
 
 Paxos is a class of synod-based algorithms for building available consistent partition-tolerance distributed systems. It means that if you build a key/value storage with Paxos it should keep working in the presents of network errors (partition-tolerance), node failures (availability) and produce non-contradictory view for each client (consistency).
 
@@ -26,7 +26,7 @@ because it tolerates failures of up to N nodes of 2N+1. So Paxos is an available
 
 ## What can we build with Paxos?
 
-<img src="{{ site.url }}/images/put-on-paxos.png" width="500" class="center-pic"/>
+<img src="{{ site.url }}/images/put-on-paxos.jpg" width="500" class="center-pic"/>
 
 We can build a distributed state machine with Paxos hence we can implement any algorithm on top of it. But it's very 
 hard to think about an unscoped domain, so in this post we consider Paxos as a foundation for building distributed data 
@@ -48,4 +48,4 @@ the change is accepted all sequential reads should respect this change.
 The paxos topology is similar to the typical 3-tier application (where clients are web-browsers, proposal are fron-end 
 servers and acceptors are databases).
 
-## Ok, how proposal and acceptors communicate to agree How the participates of the distributed system communicate?
+## Ok, how proposal and acceptors communicate to agree on the state's change?
