@@ -61,3 +61,16 @@ following diagram.
 
 On the diagram we see two rounds of proposal-acceptors communications. Also we can esimane that for one change the system 
 generates from `4f+6` to `8f+6` where `f` is a number of failures that the system can tolerate.
+
+If something bad happened and client didn't recieve confirmation then she should query the state to understand if her change
+was applied or not. The concurrent request from the client may collide and abort each other. In this case the clients should read the state and reapply the changes if necessary.
+
+The correctness will be proved below in the post.
+
+## Stop hand waving and show me the code!
+
+The description of the switch is written in a Python inspired pseudocode. I assume that every write to an instance variable is intercepted, redirected to a persistent storage and fsync-ed. Of course every read from an instance variable reads from the storage.
+
+{% gist rystsov/44b25528e74bb617726d %}
+
+{% gist rystsov/ca9d195b2737039faaf3 %}
