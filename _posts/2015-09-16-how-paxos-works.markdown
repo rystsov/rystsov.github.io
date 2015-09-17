@@ -48,8 +48,8 @@ the change is accepted all sequential reads should respect this change.
 The paxos topology is similar to the typical 3-tier application (where clients are web-browsers, proposal are front-end 
 servers and acceptors are databases).
 
-**If proposals are similar to front-end servers does it mean that the proposals are stateless?** No proposals should be able
-to generate unique unbound ID for every request (this ID is known as ballot number) so they should store last used number 
-to be able to generate a new ballot number which is greater than last one. For example servers may have unique coprime numbers as ID and generate next ballot number as a next number which is divisible by the current node's ID and coprime with the ID of the other nodes. If the id of two servers are 3 and 5 then two sequence they generate are 3,6,9,12,18,.. and 5,10,20,25,35,..
+> If proposals are similar to front-end servers does it mean that the proposals are stateless?
+
+No proposals should be able to generate unique unbound ID for every request (this ID is known as ballot number) so they should store last used number to be able to generate a new ballot number which is greater than last one. For example servers may have unique coprime numbers as ID and generate next ballot number as a next number which is divisible by the current node's ID and coprime with the ID of the other nodes. If the id of two servers are 3 and 5 then two sequence they generate are 3,6,9,12,18,.. and 5,10,20,25,35,..
 
 ## Ok, how proposal and acceptors communicate to agree on the state's change?
