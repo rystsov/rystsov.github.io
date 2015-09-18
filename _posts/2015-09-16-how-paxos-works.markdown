@@ -77,20 +77,26 @@ As you remember clients communicate only with the proposals so it's a good idea 
 
 The `change_query` endpoint accepts two pure function: `change` and `query`. The `change` function validates the old state and maps it into the new state or throws an exception. The `query` function makes a projection of the new state which returns to the client.
 
-If we want our storage to act as a distributed variable we may use identity transform both for `change` and for `query` to read it. If want to perfom a CAS-style update then we should use the following change-generator when we want to update the state from `old` state to `new`:
+Consider that we want to read a distributed variable then we may use identity transform both as `change` and as `query`. If want to perfom a CAS-guarded state transition from old to new value then we should use the following change-generator:
 
-```
-def cas_update(old, new):
-  def change(x):
-    if x!=old: raise Conflict(x)
-    return new
-  return change
-```
+{% gist rystsov/1517327d88eb3576ef94 %}
+
+Once we digest all the previous information the proposal's source code shouldn't be scary.
 
 {% gist rystsov/ca9d195b2737039faaf3 %}
 
-## The proof of the correctness
-**What we prove?** Correctness. 
-**How we prove?** Reason about event space using the program as constarints between events.
+## Why (the hell) it works?
+
+The Paxos algorithm gives us a way to build reliable distributed data structures which keep work in a predictable way even if the whole system experiences network partitioning or node failures. As long as a client can communicate with a proposer and the proposer sees the quorum of the acceptors then the distributed data structure behaves like a concurrent data structure with a serializability property; otherwise it is unavailable.
+
+Let's prove it. First of all we need to make the statement we want to prove more math-ish.
+
+Serializability means that all concurrent operations are executed in some serial order. The order on operations implies the order on the states of the data structure. Now we can define releation on the states, we say that state `B` is a descendant of `A` if `B` is a result of applying one or several `change` functions to the `A` state.
+
+If we show that any successful state change is an ancestor of any future successful state changes then the statement will be proved.
+
+We will do it by reasoning about the space of events (see emit_* int the code of acceptors and proposers).
+
+### The proof
 
 Events: emit_accepted, emit_promised, emit_prepared and emit_executed.
