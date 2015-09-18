@@ -69,13 +69,23 @@ The correctness will be proved below in the post.
 
 ## Stop hand waving and show me the code!
 
-The description of the switch is written in a Python inspired pseudocode. I assume that every write to an instance variable is intercepted, redirected to a persistent storage and fsync-ed. Of course every read from an instance variable reads from the storage.
-
-Let's start with the acceptors.
+Ok. Let's start with the acceptors. As you can see from the sequence diagram it should support two phases: prepare and accept. They are supported via the corresponding endpoints. The algorithm is written in a Python inspired pseudocode. I assume that every hdd.write call is flushed to the disk.
 
 {% gist rystsov/44b25528e74bb617726d %}
 
-As you can see we defined two endpoints. Both of them correspond to the rounds of proposal-acceptors we observed on the sequence diagram.
+As you remember clients communicate only with the proposals so it's a good idea to explore its API. It shouldn't be a surprise that the Proposal's API consists of one `change_query` function which does both query and state change because I did mention before that Paxos guarantees consistensy only for write requests hence to query the state we have to change it.
+
+The `change_query` endpoint accepts two pure function: `change` and `query`. The `change` function validates the old state and maps it into the new state or throws an exception. The `query` function makes a projection of the new state which returns to the client.
+
+If we want our storage to act as a distributed variable we may use identity transform both for `change` and for `query` to read it. If want to perfom a CAS-style update then we should use the following change-generator when we want to update the state from `old` state to `new`:
+
+```
+def cas_update(old, new):
+  def change(x):
+    if x!=old: raise Conflict(x)
+    return new
+  return change
+```
 
 {% gist rystsov/ca9d195b2737039faaf3 %}
 
