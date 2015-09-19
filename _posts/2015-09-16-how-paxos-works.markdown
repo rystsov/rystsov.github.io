@@ -91,7 +91,9 @@ The Paxos algorithm gives us a way to build reliable distributed data structures
 
 Let's prove it. First of all we need to make the statement we want to prove more math-ish.
 
-Serializability means that all concurrent operations are executed in some serial order. The order on operations implies the order on the states of the data structure. Now we can define releation on the states, we say that state `B` is a descendant of `A` if `B` is a result of applying one or several `change` functions to the `A` state.
+Serializability means that all concurrent operations are executed in some serial order. The order on operations implies the order on the states of the data structure. Now we can define releation on the states, we say that state `B` is a descendant of `A` if `B` is a result of applying one or several `change` functions to the `A` state. We use the subset notation for this
+
+> `A \subset B`
 
 If we show that any successful state change is an ancestor of any future successful state changes then the statement will be proved.
 
