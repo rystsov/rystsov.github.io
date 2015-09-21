@@ -115,3 +115,21 @@ $$\forall \mathrm{E} \in \mathbb{E} \quad \forall \bar{n}^2 \in \mathrm{E} \quad
 where $\mathrm{s}(x) \equiv x.\mathrm{state}$.
 
 To improve readability we omit the declarations of existance of all used events. For example the later expression we simplify to
+
+$$\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2) \vee \mathrm{s}(\bar{m}^2) \subset \mathrm{s}(\bar{n}^2)$$
+
+For the same purpose we allow to use $\ddot{n}^2$ and $\ddot{n}^1$ symbols a scalar context like $\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$ instead of using the verbose expression: $\forall \dot{m}^2 \in \ddot{m}^2 \quad \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\dot{m}^2)$.
+
+We're proving that:
+
+$$\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2) \vee \mathrm{s}(\bar{m}^2) \subset \mathrm{s}(\bar{n}^2)$$
+
+It obviously holds for any track if the following expression is true for the same track:
+
+$$n<m \Rightarrow \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2)$$
+
+It holds for the track the following expression also holds:
+
+$$n<m \Rightarrow \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
+
+So we reduced our task to this problem. Let's prove it by contradiction.
