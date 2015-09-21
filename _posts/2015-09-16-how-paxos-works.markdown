@@ -161,3 +161,39 @@ $$\exists n \; \exists m \; n < m \; : \; \mathrm{s}(\bar{n}^2) \not\subset \mat
 3. Lemma 2 states that $n \leq z_k$. So we have two cases:
     1. If $n < z_k$ then goto step #2
     2. If $n = z_k$ then $n$ is $z_k$, but $z_k$ is an ansestor of $z_0$ which is $m$ hence $\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$ Q.E.D.
+
+Lemma 1 is true because we explicitly check it in the proposer's source code, see the monotonicity assert.
+
+Let's proove the second lemma. We need to show that
+
+$$ \forall \bar{a}^2 \in \mathrm{E} \; \forall b>a \quad \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2) $$
+
+**The proof.** Since we don't write a new state $\ddot{b}^2$ unless we got a confirmation from the majority $\bar{b}^1$ then the following statement holds:
+
+$$\forall \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; \forall \bar{b}^1 \in \mathrm{E}$$
+
+Proposer should receive promises from a majority of the acceptors before it generates a $\ddot{b}^1$ event. It guarantees truth of the following expression:
+
+$$\mathrm{N} = \bar{b}.\mathrm{vassals}.[\mathrm{node\_id}] \cap \ddot{a}^2.[\mathrm{node\_id}] \neq \emptyset$$
+
+Where $\bigtriangleup.[\odot]\equiv\bigtriangleup.\mathrm{map}(x\to x.\odot)$.
+
+Let $n \in \mathrm{N}, \; \dot{a}^2 \in \ddot{a}^2 \cap \mathrm{E[n]}$ and $\dot{b}^1 \in \ddot{b}^1 \cap \mathrm{E[n]}$ where $\mathrm{E[n]}$ are events that happened on the $n$ node.
+
+$\dot{a}^2.\mathrm{ts} < \dot{b}^1.\mathrm{ts}$ holds because acceptor doesn't accept states with lower ballot number when it promised to accept a state with higher ballot number and $a<b$.
+
+By definition $\dot{a}^2.\mathrm{accepted\_n}$ is the ballot number of the accepted state at monent $\dot{a}.\mathrm{ts}$ on node $n$. The same is also true for $\dot{b}^1$.
+
+Since the ballot numbers of the accepted state is a monotonically increasing function of time then
+
+$$\dot{a}^2.\mathrm{accepted\_n} \leq \dot{b}^1.\mathrm{accepted\_n}$$
+
+By definition $\dot{b}^1.\mathrm{accepted\_n} \in \bar{b}^1.\mathrm{vassals}.[\mathrm{accepted\_n}]$ so
+
+$$\dot{b}^1.\mathrm{accepted\_n} \leq \bar{b}^1.\mathrm{vassals}.\mathrm{max}(x \to x.\mathrm{accepted\_n}).\mathrm{accepted\_n} = \mathrm{unwrap}(\ddot{b}^2)$$
+
+And it's the final in prooving the lemma since:
+
+$$a = \dot{a}^2.\mathrm{accepted\_n} \leq \dot{b}^1.\mathrm{accepted\_n} \leq \mathrm{unwrap}(\ddot{b}^2)$$
+
+Q.E.D.
