@@ -5,7 +5,10 @@ name: How Paxos works
 tags: ["tbd"]
 desc: "A memo on how Paxos works"
 has_comments: true
+has_math: true
 ---
+
+
 
 <div class="abstract-center">
 <h1 align="center">A memo on how Paxos works</h1>
@@ -101,4 +104,6 @@ We will do it by reasoning about the space of events (see emit_* int the code of
 
 ### The proof
 
-Events: emit_accepted, emit_promised, emit_prepared and emit_executed.
+$ax^2+bx+c=0$
+
+
