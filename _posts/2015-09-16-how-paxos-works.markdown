@@ -147,3 +147,17 @@ We may think about `unwrap` as an invertion of the `change`, because
 $$ \mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a=\mathrm{unwrap}(\ddot{b}^2)$$
 
 We're ready the lemmas.
+
+**Lemma 1** $\mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a<b$
+
+**Lemma 2** $\forall \bar{a}^2 \in \mathrm{E} \; \forall b>a \quad \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2)$ 
+
+We want to use them to falsify the assumption:
+
+$$\exists n \; \exists m \; n < m \; : \; \mathrm{s}(\bar{n}^2) \not\subset \mathrm{s}(\ddot{m}^2)$$
+
+1. $z = m,\;k=0$.
+2. $z_{k+1} = \mathrm{unwrap}(z_k),\;k=k+1$. Bacause of the first lemma $z_x$ is an ansestor of any $z_y$ where $y<x$
+3. Lemma 2 states that $n \leq z_k$. So we have two cases:
+  1. If $n < z_k$ then goto step #2
+  2. If $n = z_k$ then $n$ is $z_k$, but $z_k$ is an ansestor of $z_0$ which is $m$ hence $\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$ Q.E.D.
