@@ -133,3 +133,17 @@ It holds for the track the following expression also holds:
 $$n<m \Rightarrow \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
 
 So we reduced our task to this problem. Let's prove it by contradiction.
+
+Let
+
+$$\exists n \; \exists m \; n < m \; : \; \mathrm{s}(\bar{n}^2) \not\subset \mathrm{s}(\ddot{m}^2)$$
+
+We will use a couple of lemmas to falsify it. But first we need to define `unwrap` function which maps a ballot number of the write to the ballot number of the previous write.
+
+$$\mathrm{unwrap}(\ddot{x}^2) = \bar{x}^1.\mathrm{vassals}.\mathrm{max}(x \to x.\mathrm{accepted\_n}).\mathrm{accepted\_n}$$
+
+We may think about `unwrap` as an invertion of the `change`, because
+
+$$ \mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a=\mathrm{unwrap}(\ddot{b}^2)$$
+
+We're ready the lemmas.
