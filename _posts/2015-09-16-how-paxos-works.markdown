@@ -8,8 +8,6 @@ has_comments: true
 has_math: true
 ---
 
-
-
 <div class="abstract-center">
 <h1 align="center">A memo on how Paxos works</h1>
 
@@ -104,6 +102,4 @@ We will do it by reasoning about the space of events (see emit_* int the code of
 
 ### The proof
 
-$ax^2+bx+c=0$
-
-
+When the system is about to send a confirmation that the state was changed (n is a ballot number of the change) it calls emit_executed(n,...) to generate an event. We use $\bar{n}^2$ symbol to refer to this event. $\bar{n}^1$ is used for emit_prepared(n,...), $\ddot{n}^2$ for emit_accepted(n,...) and $\ddot{n}^1$ for emit_promised(n,...).
