@@ -145,8 +145,8 @@ $$ \mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarro
 
 We also need a couple of lemmas:
 
-1. *Lemma 1* $\mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a<b$
-2. *Lemma 2* $\forall \bar{a}^2 \in \mathrm{E} \; \forall b>a \quad \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2)$ 
+1. $\mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a<b$
+2. $\forall \bar{a}^2 \in \mathrm{E} \; \forall b>a \quad \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2)$ 
 
 Let's use them to prove:
 
