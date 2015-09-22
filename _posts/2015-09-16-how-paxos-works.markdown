@@ -165,6 +165,8 @@ $$\exists n \; \exists m \; n < m \; : \; \mathrm{s}(\bar{n}^2) \not\subset \mat
 
 **Lemma 1** $\mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a<b$ is true because we explicitly check it in the proposer's source code, see [the monotonicity assert](https://gist.github.com/rystsov/ca9d195b2737039faaf3#file-how-paxos-proposer-py-L24).
 
+<div class="hpw-conventions">
+
 **Lemma 2.** $\forall \bar{a}^2 \in \mathrm{E} \; \forall b>a \quad \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2)$ 
 
 **Proof.** Let's proove the second lemma. We need to show that
@@ -200,3 +202,5 @@ And it's the final in prooving the lemma since:
 $$a = \dot{a}^2.\mathrm{accepted\_n} \leq \dot{b}^1.\mathrm{accepted\_n} \leq \mathrm{unwrap}(\ddot{b}^2)$$
 
 **Q.E.D.**
+
+</div>
