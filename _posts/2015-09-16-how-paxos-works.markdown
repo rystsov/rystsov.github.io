@@ -171,7 +171,7 @@ $$\exists n \; \exists m \; n < m \; : \; \mathrm{s}(\bar{n}^2) \not\subset \mat
 
 $$ \forall \bar{a}^2 \in \mathrm{E} \; \forall b>a \quad \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2) $$
 
-**The proof.** Since we don't write a new state $\ddot{b}^2$ unless we got a confirmation from the majority $\bar{b}^1$ then the following statement holds:
+Since we don't write a new state $\ddot{b}^2$ unless we got a confirmation from the majority $\bar{b}^1$ then the following statement holds:
 
 $$\forall \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; \forall \bar{b}^1 \in \mathrm{E}$$
 
@@ -199,4 +199,4 @@ And it's the final in prooving the lemma since:
 
 $$a = \dot{a}^2.\mathrm{accepted\_n} \leq \dot{b}^1.\mathrm{accepted\_n} \leq \mathrm{unwrap}(\ddot{b}^2)$$
 
-Q.E.D.
+**Q.E.D.**
