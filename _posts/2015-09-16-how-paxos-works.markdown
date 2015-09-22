@@ -85,17 +85,21 @@ Once we digest all the previous information the proposal's source code shouldn't
 
 ## Why (the hell) it works?
 
-The Paxos algorithm gives us a way to build reliable distributed data structures which keep work in a predictable way even if the whole system experiences network partitioning or node failures. As long as a client can communicate with a proposer and the proposer sees the quorum of the acceptors then the distributed storage behaves like a thread safe (serializability) data structure and unavailable otherwise.
+The Paxos algorithm gives us a way to build reliable distributed data structures which keep work in a predictable way even if the whole system experiences network partitioning or node failures. As long as a client can communicate with a proposer and the proposer sees the quorum of the acceptors the distributed storage behaves like a thread safe (serializability) data structure (unavailable otherwise).
 
 Let's prove it. First of all we need to make the statement we want to prove more math-ish.
 
-Serializability means that all concurrent operations are executed in some serial order. The order on operations implies the order on the states of the data structure. Now we can define releation on the states, we say that state `B` is a descendant of `A` if `B` is a result of applying one or several `change` functions to the `A` state. We use the subset notation for this
+Serializability means that all concurrent operations are executed in some serial order which gives us a sequence of states.
+
+The order on operations implies the order on the states of the data structure. It gives us a hint that we Now we can define releation on the states, we say that state `B` is a descendant of `A` if `B` is a result of applying one or several `change` functions to the `A` state. We use the subset notation for this
 
 > $A \subset B$
 
 If we show that any successful state change is an ancestor of any future successful state changes then the statement will be proved.
 
 We will do it by reasoning about the space of events (see emit_* invocation in the code of acceptors and proposers).
+
+<div class="hpw-conventions">
 
 When the system is about to send a confirmation that the state was changed (n is a ballot number of the change) it calls emit_executed(n,...) to generate an event. We use $\bar{n}^2$ symbol to refer to this event. $\bar{n}^1$ is used for emit_prepared(n,...), $\ddot{n}^2$ for emit_accepted(n,...) and $\ddot{n}^1$ for emit_promised(n,...).
 
@@ -114,6 +118,8 @@ To improve readability we omit the declarations of existance of all used events.
 $$\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2) \vee \mathrm{s}(\bar{m}^2) \subset \mathrm{s}(\bar{n}^2)$$
 
 For the same purpose we allow to use $\ddot{n}^2$ and $\ddot{n}^1$ symbols a scalar context like $\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$ instead of using the verbose expression: $\forall \dot{m}^2 \in \ddot{m}^2 \quad \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\dot{m}^2)$.
+
+</div>
 
 We're proving that:
 
