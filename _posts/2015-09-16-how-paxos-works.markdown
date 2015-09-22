@@ -135,7 +135,7 @@ $$n<m \Rightarrow \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
 
 Let's prove it.
 
-**Proof.** Let's define `unwrap` function which maps a ballot number of the write to the ballot number of the previous write.
+**Proof.** First we define `unwrap` function which maps a ballot number of the write to the ballot number of the previous write.
 
 $$\mathrm{unwrap}(\ddot{x}^2) = \bar{x}^1.\mathrm{vassals}.\mathrm{max}(x \to x.\mathrm{accepted\_n}).\mathrm{accepted\_n}$$
 
