@@ -121,7 +121,7 @@ $$\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2) \vee \mathrm{s}(\bar{m}^2)
 
 </div>
 
-We're proving that:
+**Statement.** We're proving that:
 
 $$\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2) \vee \mathrm{s}(\bar{m}^2) \subset \mathrm{s}(\bar{n}^2)$$
 
@@ -135,7 +135,7 @@ $$n<m \Rightarrow \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
 
 So we reduced our task to this problem. Let's prove it by contradiction.
 
-Let
+**Proof.** Let
 
 $$\exists n \; \exists m \; n < m \; : \; \mathrm{s}(\bar{n}^2) \not\subset \mathrm{s}(\ddot{m}^2)$$
 
