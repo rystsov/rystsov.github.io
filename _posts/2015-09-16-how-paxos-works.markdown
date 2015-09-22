@@ -95,7 +95,7 @@ Serializability means that all concurrent operations are executed in some serial
 
 If we show that any successful state change is an ancestor of any future successful state changes then the statement will be proved.
 
-We will do it by reasoning about the space of events (see emit_* int the code of acceptors and proposers).
+We will do it by reasoning about the space of events (see emit_* invocation in the code of acceptors and proposers).
 
 When the system is about to send a confirmation that the state was changed (n is a ballot number of the change) it calls emit_executed(n,...) to generate an event. We use $\bar{n}^2$ symbol to refer to this event. $\bar{n}^1$ is used for emit_prepared(n,...), $\ddot{n}^2$ for emit_accepted(n,...) and $\ddot{n}^1$ for emit_promised(n,...).
 
