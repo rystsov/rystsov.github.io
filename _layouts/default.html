@@ -3,6 +3,10 @@
     <title>{{ page.title }}</title>
     <meta charset="UTF-8" />
 
+    {% if page.ignore_css %}
+        <link href="{{ site.url }}/css/reset.css" rel="stylesheet">
+    {% endunless %}
+
     {% unless page.ignore_css %}
         <link href="{{ site.url }}/css/common.css" rel="stylesheet">
         {% for css in page.extra_css %}
