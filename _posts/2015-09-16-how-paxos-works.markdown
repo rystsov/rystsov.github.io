@@ -6,6 +6,7 @@ tags: ["tbd"]
 desc: "A memo on how Paxos works"
 has_comments: true
 has_math: true
+ignore_css: true
 ---
 
 <div class="abstract-center">
