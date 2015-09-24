@@ -7,6 +7,7 @@ desc: "A memo on how Paxos works"
 has_comments: true
 has_math: true
 ignore_css: true
+marker: hpw
 ---
 
 <div class="abstract">
@@ -157,11 +158,11 @@ ignore_css: true
 
 			<p>It obviously holds for any track if the following expression is true for the same track:</p>
 
-			$$n<m \Rightarrow \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2)$$
+			$$n&lt;m \Rightarrow \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2)$$
 
 			<p>It holds for the track the following expression also holds:</p>
 
-			$$n<m \Rightarrow \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
+			$$n&lt;m \Rightarrow \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
 
 			<p>Let's prove it.</p>
 		</div>
@@ -178,7 +179,7 @@ ignore_css: true
 			<p>We also need a couple of lemmas:</p>
 
 			<ol>
-				<li>$\mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a<b$</li>
+				<li>$\mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a&lt;b$</li>
 				<li>$\forall \bar{a}^2 \in \mathrm{E} \; \forall b>a \quad \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2)$</li>
 			</ol>
 
@@ -188,10 +189,10 @@ ignore_css: true
 
 			<ol>
 				<li>$z = m,\;k=0$.</li>
-				<li>$z_{k+1} = \mathrm{unwrap}(z_k),\;k=k+1$. Bacause of the first lemma $z_x$ is an ansestor of any $z_y$ where $y<x$</li>
+				<li>$z_{k+1} = \mathrm{unwrap}(z_k),\;k=k+1$. Bacause of the first lemma $z_x$ is an ansestor of any $z_y$ where $y&lt;x$</li>
 				<li>Lemma 2 states that $n \leq z_k$. So we have two cases:
 					<ol>
-						<li>If $n < z_k$ then goto step #2</li>
+						<li>If $n &lt; z_k$ then goto step #2</li>
 						<li>If $n = z_k$ then $n$ is $z_k$, but $z_k$ is an ansestor of $z_0$ which is $m$ hence $\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$</li>
 					</ol>
 				</li>
