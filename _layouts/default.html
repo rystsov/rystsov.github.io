@@ -7,6 +7,10 @@
         <link href="{{ site.url }}/css/reset.css" rel="stylesheet">
     {% endif %}
 
+    {% if page.marker == "hpw" %}
+        <link href="{{ site.url }}/css/hpw.css" rel="stylesheet">
+    {% endif %}
+
     {% unless page.ignore_css %}
         <link href="{{ site.url }}/css/common.css" rel="stylesheet">
         {% for css in page.extra_css %}

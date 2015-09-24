@@ -1,0 +1,68 @@
+
+/* common */
+
+body {
+    font-size: 18px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+#column {
+    margin: 2em auto 2em auto;
+    max-width: 50em;
+    font-size: 110%;
+}
+
+.menu .home {
+    font-size: 32;
+    font-variant: small-caps;
+    margin-right: 1em;
+}
+
+.menu .home a {
+    background-color: white;
+    color: black;
+    text-decoration: none;
+}
+
+/* hpw */
+
+.hpw .abstract {
+    max-width: 600px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.hpw .abstract h1 {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.hpw .abstract p {
+    margin-top: 0.5em;
+}
+
+.hpw .abstract .label {
+    font-style: normal;
+    font-weight: bold;
+}
+
+.hpw .abstract .text {
+    font-style: italic;
+}
+
+
+.hpw #overview {
+    margin-top: 0.7em;
+}
+
+
+.hpw blockquote {
+    font-size: 1.3em;
+    color: #777777;
+}
+
+
+.hpw .brim p {
+    margin-top: 0.5em;
+}
+
