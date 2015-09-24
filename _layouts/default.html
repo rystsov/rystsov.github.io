@@ -3,10 +3,12 @@
     <title>{{ page.title }}</title>
     <meta charset="UTF-8" />
 
-    <link href="{{ site.url }}/css/common.css" rel="stylesheet">
-    {% for css in page.extra_css %}
-        <link href="{{ site.url }}/{{ css }}" rel="stylesheet">
-    {% endfor %}
+    {% unless page.ignore_css %}
+        <link href="{{ site.url }}/css/common.css" rel="stylesheet">
+        {% for css in page.extra_css %}
+            <link href="{{ site.url }}/{{ css }}" rel="stylesheet">
+        {% endfor %}
+    {% endunless %}
 
     {% if page.has_math %}
         <script type="text/x-mathjax-config">
@@ -15,6 +17,10 @@
             });
         </script>
         <script type="text/javascript" src="/MathJax-2.5.3/MathJax.js?config=default"></script>
+    {% endif %}
+
+    {% if page.has_comments %}
+        <link href="{{ site.url }}/css/disqus.css" rel="stylesheet">
     {% endif %}
 
     <script>
