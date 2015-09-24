@@ -20,17 +20,17 @@ marker: hpw
 
 
 <div id="overview" class="brim"><div class="content">
-	<blockquote>&gt; What is Paxos?</blockquote>
+	<blockquote id="what-is-paxos">&gt; What is Paxos?</blockquote>
 
 		<p>Paxos is a class of synod-based algorithms for building available consistent distributed systems on top of asynchronous and unreliable network. For example if you're building a key/value storage then Paxos will help you to keep it working in the present of network errors (partition-tolerance), node failures (availability) and to produce non-contradictory (between clients) views.</p>
 	
-	<h2>Doesn't it violate CAP theorem?</h2>
+	<blockquote>Doesn't it violate CAP theorem?</blockquote>
 		
 		<p>No, it doesn't. Availability in the CAP sense is very strict. For example, a system using two-phase commit (2PC) algorithm and a system using Paxos algorithm are both unavailable in a CAP sense. It makes sense for the 2PC system since the 2PC's coordinator is a single point of failure but it's strange for Paxos because it tolerates up to N fails out of 2N+1 nodes.</p>
 
 		<p>Paxos is an available in common sense CP system.<p>
 	
-	<h2>What can we build with Paxos?</h2>
+	<blockquote>What can we build with Paxos?</blockquote>
 		
 		<img src="{{ site.url }}/images/put-on-paxos.jpg" width="500" class="center-pic"/>
 
@@ -38,17 +38,17 @@ marker: hpw
 
 		<p>It's a common practice for storages to have write operations to mutate its state and read operations to query it. Paxos is different, it guaranties consistency only for write operations, so to query its state the system makes read, writes the state back and when the state change is accepted the system queries the written state.</p>
 
-	<h2>Wait, don't pay so much attention to the details, what is the topology of the Paxos-based distributed system?</h2>
+	<blockquote>Wait, don't pay so much attention to the details, what is the topology of the Paxos-based distributed system?</blockquote>
 
 		<p>Usually a Paxos-based distributed system consists of clients, proposers and acceptors. Clients mutate and query the state of the system, proposers process the client's commands and acceptors store the information.</p>
 
 		<p>The paxos topology is similar to the typical 3-tier application (where clients are web-browsers, proposers are front-end servers and acceptors are databases).</p>
 
-		<blockquote>If proposals are similar to front-end servers does it mean that the proposals are stateless?</blockquote>
+	<blockquote>If proposals are similar to front-end servers does it mean that the proposals are stateless?</blockquote>
 
 		<p>No, proposals should be able to generate a global unique ID (ballot number) for every request it process. They store last used ballot number to be able to generate a new one which is greater than the current. For example servers may have unique coprime numbers as ID and generate next ballot number as a next number which is divisible by the current node's ID and coprime with the ID of the other nodes. If the id of two servers are 3 and 5 then two sequences they generate are 3,6,9,12,18,.. and 5,10,20,25,35,..</p>
 
-	<h2>Ok, how proposal and acceptors communicate to agree on the system state?</h2>
+	<blockquote>Ok, how proposal and acceptors communicate to agree on the system state?</blockquote>
 
 		<p>Let's take a look on how a Paxos-based distributed system handles a state mutation request. In typical case is:</p>
 
