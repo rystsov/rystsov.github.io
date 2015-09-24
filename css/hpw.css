@@ -31,21 +31,17 @@ body {
     margin-right: auto;
     margin-left: auto;
 }
-
 .hpw .abstract h1 {
     font-size: 2em;
     font-weight: bold;
 }
-
 .hpw .abstract p {
     margin-top: 0.5em;
 }
-
 .hpw .abstract .label {
     font-style: normal;
     font-weight: bold;
 }
-
 .hpw .abstract .text {
     font-style: italic;
 }
@@ -56,17 +52,15 @@ body {
 }
 
 
-.hpw blockquote {
+.hpw .brim blockquote {
     font-size: 1.3em;
     color: #777777;
+    margin-top: 0;
 }
-
+.hpw .brim #what-is-paxos {
+    margin-top: 0;
+}
 
 .hpw .brim p {
     margin-top: 0.5em;
-}
-
-
-.hpw .brim #what-is-paxos {
-    margin-top: 0.7em;
 }
