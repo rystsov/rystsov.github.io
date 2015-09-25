@@ -32,7 +32,7 @@ marker: hpw
 	
 	<blockquote>&gt; What can we build with Paxos?</blockquote>
 		
-		<img src="{{ site.url }}/images/put-on-paxos.jpg" width="500" class="center-pic"/>
+		<img src="{{ site.url }}/images/put-on-paxos.jpg" width="500"/>
 
 		<p>We can build a distributed state machine with Paxos and implement any algorithm on top of it. But it's very hard to think about an unscoped domain, so in this post we consider Paxos as a foundation for building distributed data storages.</p>
 
@@ -58,7 +58,7 @@ marker: hpw
 			<li>Once the change is accepted all reads should reflect the change.</li>
 		</ol>
 
-		<img src="{{ site.url }}/images/paxos-seq.png" width="600" class="center-pic"/>
+		<img src="{{ site.url }}/images/paxos-seq.png" width="600"/>
 
 		<p>On the diagram we see two rounds of proposal-acceptors communications. We also can estimate that the system generates from `4f+6` to `8f+6` messages for every change/read where `f` is a number of failures that the system can tolerate.</p>
 
