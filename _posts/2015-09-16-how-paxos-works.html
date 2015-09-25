@@ -18,11 +18,12 @@ marker: hpw
 	</p>
 </div>
 
-
-<div id="overview" class="brim"><div class="content">
+<div id="overview1" class="brim"><div class="content">
 	<h2>Overview</h2>
+</div></div>
 
-		<p>Paxos is a class of synod-based algorithms for building available consistent distributed systems on top of asynchronous and unreliable network. For example if you're building a key/value storage then Paxos will help you to keep it working in the present of network errors (partition-tolerance), node failures (availability) and to produce non-contradictory (between clients) views.</p>
+<div class="brim"><div class="content">
+	<p class="edge">Paxos is a class of synod-based algorithms for building available consistent distributed systems on top of asynchronous and unreliable network. For example if you're building a key/value storage then Paxos will help you to keep it working in the present of network errors (partition-tolerance), node failures (availability) and to produce non-contradictory (between clients) views.</p>
 	
 	<blockquote>&gt; Doesn't it violate CAP theorem?</blockquote>
 		
@@ -65,10 +66,12 @@ marker: hpw
 		<p>If something bad happens and client doesn't recieve a confirmation then she should query the system to understand if her change was applied or not. For example it may happen when the concurrent requests from the clients may collide and abort each other.</p>
 </div></div>
 
-
-<div class="brim code1"><div class="content">
+<div id="code1" class="brim"><div class="content">
 	<h2>Code</h2>
-		<p>Ok. Let's start with the acceptors. As you can see from the sequence diagram it supports two phases: prepare and accept. They are supported via the corresponding endpoints. The algorithm itself is written in a Python inspired pseudocode. I assume that every hdd.write call is flushed to the disk.</p>
+</div></div>
+
+<div class="brim"><div class="content">
+	<p class="edge">Ok. Let's start with the acceptors. As you can see from the sequence diagram it supports two phases: prepare and accept. They are supported via the corresponding endpoints. The algorithm itself is written in a Python inspired pseudocode. I assume that every hdd.write call is flushed to the disk.</p>
 
 		{% gist rystsov/44b25528e74bb617726d %}
 
@@ -85,11 +88,12 @@ marker: hpw
 		{% gist rystsov/ca9d195b2737039faaf3 %}
 </div></div>
 
-
-<div class="brim math1"><div class="content">
+<div id="math1" class="brim"><div class="content">
 	<h2>Math</h2>
+</div></div>
 
-		<p>The Paxos algorithm gives us a way to build reliable distributed data structures which keep work in a predictable way even if the whole system experiences network partitioning or node failures. As long as a client can communicate with a proposer and the proposer sees the quorum of the acceptors then the distributed storage behaves like a thread safe data structure. Otherwise the system is unavailable.</p>
+<div class="brim"><div class="content">
+	<p class="edge">The Paxos algorithm gives us a way to build reliable distributed data structures which keep work in a predictable way even if the whole system experiences network partitioning or node failures. As long as a client can communicate with a proposer and the proposer sees the quorum of the acceptors then the distributed storage behaves like a thread safe data structure. Otherwise the system is unavailable.</p>
 </div></div>
 
 

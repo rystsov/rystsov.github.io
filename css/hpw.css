@@ -48,7 +48,7 @@ body {
 }
 
 
-.hpw #overview {
+.hpw #overview1 {
     margin-top: 1.5em;
 }
 
@@ -64,12 +64,13 @@ body {
     color: #777777;
     margin-top: 0.7em;
 }
-.hpw .brim #what-is-paxos {
-    margin-top: 0;
-}
+
 
 .hpw .brim p {
     margin-top: 0.5em;
+}
+.hpw .brim .edge {
+    margin-top: 0;
 }
 
 
