@@ -143,15 +143,15 @@ marker: hpw
 		<div class="text">
 			<p>We're proving that:</p>
 
-			$$\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2) \; \vee \; \mathrm{s}(\bar{m}^2) \subset \mathrm{s}(\bar{n}^2)$$
+			$$\mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2) \;\vee\; \mathrm{s}(\bar{m}^2) \subset \mathrm{s}(\bar{n}^2)$$
 
 			<p>It obviously holds for any track if the following expression is true for the same track:</p>
 
-			$$n&lt;m \; \Rightarrow \; \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2)$$
+			$$n&lt;m \;\Rightarrow\; \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\bar{m}^2)$$
 
 			<p>It holds for the track the following expression also holds:</p>
 
-			$$n&lt;m \; \Rightarrow \; \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
+			$$n&lt;m \;\Rightarrow\; \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
 
 			<p>Let's prove it.</p>
 		</div>
@@ -169,12 +169,12 @@ marker: hpw
 
 			<ol>
 				<li>$\mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a&lt;b$</li>
-				<li>$\forall \bar{a}^2 \in \mathrm{E} \; \forall b>a \quad \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2)$</li>
+				<li>$\forall \bar{a}^2 \in \mathrm{E} \quad \forall b>a \,:\, \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2)$</li>
 			</ol>
 
 			<p>Let's use them to prove:</p>
 
-			$$n&lt;m \Rightarrow \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
+			$$n&lt;m \;\Rightarrow\; \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
 
 			<ol>
 				<li>$z = m,\;k=0$.</li>
@@ -199,14 +199,10 @@ marker: hpw
 <div class="brim lemma2"><div class="content theorem">
 	<div class="label">Lemma 2.</div>
 		<div class="text">
-			$\forall \bar{a}^2 \in \mathrm{E} \; \forall b>a \quad \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2)$ 
+			$\forall \bar{a}^2 \in \mathrm{E} \quad \forall b>a \,:\, \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2)$
 		</div>
 	<div class="label">Proof.</div>
 		<div class="text">
-			<p>Let's proove the second lemma. We need to show that</p>
-
-			$$ \forall \bar{a}^2 \in \mathrm{E} \; \forall b>a \quad \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; a \leq \mathrm{unwrap}(\ddot{b}^2) $$
-			
 			<p>Since we don't write a new state $\ddot{b}^2$ unless we got a confirmation from the majority $\bar{b}^1$ then the following statement holds:</p>
 
 			$$\forall \ddot{b}^2 \in \mathrm{E} \;\Rightarrow\; \forall \bar{b}^1 \in \mathrm{E}$$
@@ -227,15 +223,15 @@ marker: hpw
 
 			<p>Since the ballot numbers of the accepted state is a monotonically increasing function of time then</p>
 
-			$$\dot{a}^2.\mathrm{accepted\_n} \leq \dot{b}^1.\mathrm{accepted\_n}$$
+			$$\dot{a}^2.\mathrm{accepted\_n} \;\leq\; \dot{b}^1.\mathrm{accepted\_n}$$
 
 			<p>By definition $\dot{b}^1.\mathrm{accepted\_n} \in \bar{b}^1.\mathrm{vassals}.[\mathrm{accepted\_n}]$ so</p>
 
-			$$\dot{b}^1.\mathrm{accepted\_n} \leq \bar{b}^1.\mathrm{vassals}.\mathrm{max}(x \to x.\mathrm{accepted\_n}).\mathrm{accepted\_n} = \mathrm{unwrap}(\ddot{b}^2)$$
+			$$\dot{b}^1.\mathrm{accepted\_n} \;\leq\; \bar{b}^1.\mathrm{vassals}.\mathrm{max}(x \to x.\mathrm{accepted\_n}).\mathrm{accepted\_n} \;=\; \mathrm{unwrap}(\ddot{b}^2)$$
 
 			<p>And it's the final in prooving the lemma since:</p>
 
-			$$a = \dot{a}^2.\mathrm{accepted\_n} \leq \dot{b}^1.\mathrm{accepted\_n} \leq \mathrm{unwrap}(\ddot{b}^2)$$
+			$$a \;=\; \dot{a}^2.\mathrm{accepted\_n} \;\leq\; \dot{b}^1.\mathrm{accepted\_n} \;\leq\; \mathrm{unwrap}(\ddot{b}^2)$$
 
 			<div class="qed">Q.E.D.</div>
 		</div>
