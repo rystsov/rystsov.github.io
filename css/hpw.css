@@ -53,6 +53,12 @@ body {
 }
 
 
+.hpw .brim {
+    padding-left: 0.7em;
+    padding-right: 0.7em;
+}
+
+
 .hpw .brim blockquote {
     font-size: 1.3em;
     color: #777777;
@@ -81,3 +87,54 @@ body {
     padding-left: 40px;
 }
 .hpw .brim li { }
+
+
+.hpw .brim .gist {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+
+.hpw .brim table {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0.7em;
+    border-spacing: 10px 2px;
+    border-collapse: separate;
+}
+.hpw .brim th {
+    font-weight: bold;
+}
+.hpw .brim .abbr {
+    text-align: center;
+}
+
+
+.hpw .brim .theorem .label {
+    font-weight: bold;
+}
+.hpw .brim .theorem .text {
+    margin-left: 2em;
+}
+
+
+.hpw .brim .lemma .label {
+    font-weight: bold;
+}
+
+.hpw .lemma1 {
+    background-color: #EEFFEE;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+
+.qed {
+    font-weight: bold;
+    font-size: 110%;
+    margin-left: auto;
+    margin-right: auto;
+    width: 4em;
+    margin-top: 0.7em;
+}
