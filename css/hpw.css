@@ -48,8 +48,22 @@ body {
 }
 
 
+.hpw .brim h2 {
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+}
 .hpw #overview1 {
     margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+.hpw #code1 {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+.hpw #math1 {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
 }
 
 
@@ -118,6 +132,10 @@ body {
 .hpw .brim .theorem .text {
     margin-left: 2em;
 }
+.hpw .brim .theorem .label {
+    font-weight: bold;
+    margin-top: 0.5em;
+}
 
 
 .hpw .brim .lemma .label {
@@ -128,6 +146,19 @@ body {
     background-color: #EEFFEE;
     padding-top: 0.5em;
     padding-bottom: 0.5em;
+    margin-top: 1em;
+}
+.hpw .lemma2 {
+    margin-top: 1em;
+}
+.hpw .defs1 {
+    background-color: #EEFFEE;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    margin-top: 0.5em;
+}
+.hpw .theorem1 {
+    margin-top: 1em;
 }
 
 
