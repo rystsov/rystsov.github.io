@@ -20,7 +20,7 @@ marker: hpw
 
 
 <div id="overview" class="brim"><div class="content">
-	<blockquote id="what-is-paxos">&gt; What is Paxos?</blockquote>
+	<h2>Overview</h2>
 
 		<p>Paxos is a class of synod-based algorithms for building available consistent distributed systems on top of asynchronous and unreliable network. For example if you're building a key/value storage then Paxos will help you to keep it working in the present of network errors (partition-tolerance), node failures (availability) and to produce non-contradictory (between clients) views.</p>
 	
@@ -66,8 +66,8 @@ marker: hpw
 </div></div>
 
 
-<div class="brim"><div class="content">
-	<blockquote>&gt; Stop hand waving and show me the code!</blockquote>
+<div class="brim code1"><div class="content">
+	<h2>Code</h2>
 		<p>Ok. Let's start with the acceptors. As you can see from the sequence diagram it supports two phases: prepare and accept. They are supported via the corresponding endpoints. The algorithm itself is written in a Python inspired pseudocode. I assume that every hdd.write call is flushed to the disk.</p>
 
 		{% gist rystsov/44b25528e74bb617726d %}
@@ -86,11 +86,14 @@ marker: hpw
 </div></div>
 
 
-<div class="brim"><div class="content">
-	<blockquote>&gt; Why (the hell) it works?</blockquote>
+<div class="brim math1"><div class="content">
+	<h2>Math</h2>
 
 		<p>The Paxos algorithm gives us a way to build reliable distributed data structures which keep work in a predictable way even if the whole system experiences network partitioning or node failures. As long as a client can communicate with a proposer and the proposer sees the quorum of the acceptors then the distributed storage behaves like a thread safe data structure. Otherwise the system is unavailable.</p>
+</div></div>
 
+
+<div class="brim defs1"><div class="content">
 		<p>Let's prove it. As you can see from the sources the system generates events of different kind (emit_executed, emit_prepared, emit_accepted and emit_promised). We will show that:</p>
 
 		<ol>
