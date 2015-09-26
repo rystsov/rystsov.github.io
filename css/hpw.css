@@ -125,31 +125,23 @@ body {
     text-align: center;
 }
 
-
+.hpw .alt .MathJax {
+    background-color: white;
+    padding: 0.2em;
+}
+.hpw :not(.alt) .MathJax {
+    background-color: #EEFFEE;
+    padding: 0.2em;
+}
 .hpw .imb {
     margin-left: 0.2em;
     margin-right: 0.2em;
-    background-color: white;
-    padding: 0.2em;
 }
 .hpw .iml {
     margin-left: 0.2em;
-    background-color: white;
-    padding: 0.2em;
 }
 .hpw .imr {
     margin-right: 0.2em;
-    background-color: white;
-    padding: 0.2em;
-}
-.hpw .alt .imb {
-    background-color: #EEFFEE;
-}
-.hpw .alt .iml {
-    background-color: #EEFFEE;
-}
-.hpw .alt .imr {
-    background-color: #EEFFEE;
 }
 
 
