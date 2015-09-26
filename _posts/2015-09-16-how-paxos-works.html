@@ -61,7 +61,7 @@ marker: hpw
 
 		<img src="{{ site.url }}/images/paxos-seq.png" width="600"/>
 
-		<p>On the diagram we see two rounds of proposal-acceptors communications. We also can estimate that the system generates from `4f+6` to `8f+6` messages for every change/read where `f` is a number of failures that the system can tolerate.</p>
+		<p>On the diagram we see two rounds of proposal-acceptors communications. We also can estimate that the system generates from <code>4f+6</code> to <code>8f+6</code> messages for every change/read where <code>f</code> is a number of failures that the system can tolerate.</p>
 
 		<p>If something bad happens and client doesn't recieve a confirmation then she should query the system to understand if her change was applied or not. For example it may happen when the concurrent requests from the clients may collide and abort each other.</p>
 </div></div>
@@ -75,11 +75,11 @@ marker: hpw
 
 		{% gist rystsov/44b25528e74bb617726d %}
 
-		<p>As you remember clients communicate only with the proposals so it's a good idea to explore its API. I did mention before that Paxos guarantees consistensy only for write requests so it shouldn't be a surprise that the proposer's API consists just of one `change_query` endpoint.</p>
+		<p>As you remember clients communicate only with the proposals so it's a good idea to explore its API. I did mention before that Paxos guarantees consistensy only for write requests so it shouldn't be a surprise that the proposer's API consists just of one <code>change_query</code> endpoint.</p>
 
-		<p>It accepts two pure function: `change` and `query`. The `change` function validates the old state and maps it into the new state (or throws an exception). The `query` function makes a projection of the new state and returns it to the client.</p>
+		<p>It accepts two pure function: <code>change</code> and <code>query</code>. The <code>change</code> function validates the old state and maps it into the new state (or throws an exception). The <code>query</code> function makes a projection of the new state and returns it to the client.</p>
 
-		<p>Consider that we want to read a distributed variable then we may use identity transform both as `change` and as `query`. If we want to perfom a CAS-guarded state transition from old to new value then we should use the following change-generator:</p>
+		<p>Consider that we want to read a distributed variable then we may use identity transform both as <code>change</code> and as <code>query</code>. If we want to perfom a CAS-guarded state transition from old to new value then we should use the following change-generator:</p>
 
 		{% gist rystsov/1517327d88eb3576ef94 %}
 
@@ -157,11 +157,11 @@ marker: hpw
 		</div>
 	<div class="label">Proof.</div>
 		<div class="text">
-			<p>First we define `unwrap` function which maps a ballot number of the write to the ballot number of the previous write.</p>
+			<p>First we define <code>unwrap</code> function which maps a ballot number of the write to the ballot number of the previous write.</p>
 
 			$$\mathrm{unwrap}(\ddot{x}^2) := \bar{x}^1.\mathrm{vassals}.\mathrm{max}(x \to x.\mathrm{accepted\_n}).\mathrm{accepted\_n}$$
 
-			<p>We may think about `unwrap` as an invertion of the `change`, because</p>
+			<p>We may think about <code>unwrap</code> as an invertion of the <code>change</code>, because</p>
 
 			$$\mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a=\mathrm{unwrap}(\ddot{b}^2)$$
 
