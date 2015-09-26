@@ -125,14 +125,6 @@ body {
     text-align: center;
 }
 
-.hpw .alt .MathJax {
-    background-color: white;
-    padding: 0.2em;
-}
-.hpw :not(.alt) .MathJax {
-    background-color: #EEFFEE;
-    padding: 0.2em;
-}
 .hpw .imb {
     margin-left: 0.2em;
     margin-right: 0.2em;
