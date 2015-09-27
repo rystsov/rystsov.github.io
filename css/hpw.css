@@ -177,9 +177,18 @@ body {
 .hpw .theorem1 {
     margin-top: 1em;
 }
+.hpw .examples1 {
+    margin-top: 0.7em;
+    margin-bottom: 0.7em;
+}
 
+.hpw .examples1 h3 {
+    margin-top: 0.5em;
+    font-size: 1.2em;
+    text-align: center;
+}
 
-.qed {
+.hpw .qed {
     font-weight: bold;
     font-size: 110%;
     margin-left: auto;
