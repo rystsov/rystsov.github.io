@@ -104,6 +104,19 @@ body {
 }
 
 
+.hpw .brim sup {
+    vertical-align: super;
+    font-size: 80%;
+}
+
+
+.hpw .brim .link {
+    background: yellow;
+    color: black;
+    text-decoration: none;
+}
+
+
 .hpw .brim code {
     margin-left: 0.3em;
     margin-right: 0.3em;
@@ -197,9 +210,18 @@ body {
 .hpw .theorem1 {
     margin-top: 1em;
 }
+.hpw .examples1 {
+    margin-top: 0.7em;
+    margin-bottom: 0.7em;
+}
 
+.hpw .examples1 h3 {
+    margin-top: 0.5em;
+    font-size: 1.2em;
+    text-align: center;
+}
 
-.qed {
+.hpw .qed {
     font-weight: bold;
     font-size: 110%;
     margin-left: auto;

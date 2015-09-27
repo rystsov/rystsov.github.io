@@ -193,7 +193,7 @@ marker: hpw
 
 <div class="brim alt lemma1"><div class="content theorem">
 	<div class="label">Lemma 1.</div>
-		<div class="text"><span class="imr">$\mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a&lt;b$</span> is true because we explicitly check it in the proposer's source code, see <a href="https://gist.github.com/rystsov/ca9d195b2737039faaf3#file-how-paxos-proposer-py-L24">the monotonicity assert</a>.</div>
+		<div class="text"><span class="imr">$\mathrm{s}(\ddot{b}^2) = \mathrm{change}(\mathrm{s}(\ddot{a}^2)) \;\Rightarrow\; a&lt;b$</span> is true because we explicitly check it in the proposer's source code, see <a class="link" href="https://gist.github.com/rystsov/ca9d195b2737039faaf3#file-how-paxos-proposer-py-L24">the monotonicity assert</a>.</div>
 </div></div>
 
 <div class="brim lemma2"><div class="content theorem">
@@ -256,7 +256,7 @@ marker: hpw
 </div></div>
 
 <div class="brim"><div class="content">
-	<p class="edge">If you read <a href="http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf">Paxos Made Simple</a> then you migth have noticed that the algorithm in this post is a little bit different. Leslie Lamport described a distributed switch (aka single degree paxos) and shown how to run multiple copies of it to build a distributed state machine.</p>
+	<p class="edge">If you read <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf">Paxos Made Simple</a> then you migth have noticed that the algorithm in this post is a little bit different. Leslie Lamport described a distributed switch (aka single degree paxos) and shown how to run multiple copies of it to build a distributed state machine.</p>
 
 	<blockquote>&gt; It seems that the "Paxos Made Simple" version is more complex. Is it really true?</blockquote>
 
@@ -271,13 +271,13 @@ marker: hpw
 
 	<p>It depends. If we want to build a key/value storage then we can take Multi-Paxos or Raft and put the key/value logic behind it. In theory performance of the storage should be limited by network and disk throughput because the operations with different keys are independent and the algorithm supports concurency. In practice performance of the well known CP systems is low.</p>
 
-	<p>According to the official documents<sup><a href="http://wiki.apache.org/hadoop/ZooKeeper/Performance">[1]</a></sup> performance of the 3-node Zookeeper cluster is close to 20K ops per second. Etcd is another famous CP system and its performance is close to 5K ops per second<sup><a href="https://github.com/coreos/etcd/blob/master/Documentation/benchmarks/etcd-2-2-0-rc-benchmarks.md">[2]</a></sup>.</p>
+	<p>According to the official documents<sup><a class="link" href="http://wiki.apache.org/hadoop/ZooKeeper/Performance">[1]</a></sup> performance of the 3-node Zookeeper cluster is close to 20K ops per second. Etcd is another famous CP system and its performance is close to 5K ops per second<sup><a class="link" href="https://github.com/coreos/etcd/blob/master/Documentation/benchmarks/etcd-2-2-0-rc-benchmarks.md">[2]</a></sup>.</p>
 
 	<p>However avarage hardware can provide 150Mb/s for HDD, so the expected performance should be close to 200K ops per second.</p>
 
 	<p>It happens because Raft and Multi-Paxos has intristic limitation on thier concurency support. For example when Multi-Paxos inserts a value into the log it should invalidate all previous unknown positions in the log. The number of unknown positions depends on the same $\alpha$ parameter that controls the number of concurrent operations, so it's obvious that the performance as a function of $\alpha$ looks like an upside down parabola and achieves its maximum.</p>
 
-	<p>If we take another approach and run an independent instance of single degree Paxos presented in this post per each key then we can achieve much better performance because we don't coordinate the updates to different keys. This idea aligns both with academia and industry. For example, famous distributed systems researcher Peter Bailis made the <a href="https://www.youtube.com/watch?v=EYJnWttrC9k">Coordination-Avoiding Systems Design</a> talk about the similar idea. Folks behind the CockroachDB <a href="https://github.com/cockroachdb/cockroach/blob/master/docs/design.md">chose an transitional approach</a> for their db: they break the key space into a set of small ranges and run independent Raft implementation per each range.</p>
+	<p>If we take another approach and run an independent instance of single degree Paxos presented in this post per each key then we can achieve much better performance because we don't coordinate the updates to different keys. This idea aligns both with academia and industry. For example, famous distributed systems researcher Peter Bailis made the <a class="link" href="https://www.youtube.com/watch?v=EYJnWttrC9k">Coordination-Avoiding Systems Design</a> talk about the similar idea. Folks behind the CockroachDB <a class="link" href="https://github.com/cockroachdb/cockroach/blob/master/docs/design.md">chose an transitional approach</a> for their db: they break the key space into a set of small ranges and run independent Raft implementation per each range.</p>
 
 	<p>So Multi-Paxos and Raft have advantage over single degree Paxos state machine, but for some applications (like key/value storages) those advantage are irrelevant and introduce redundant complexity.</p>
 </div></div>
