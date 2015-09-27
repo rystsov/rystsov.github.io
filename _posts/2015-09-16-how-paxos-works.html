@@ -234,3 +234,50 @@ marker: hpw
 			<div class="qed">Q.E.D.</div>
 		</div>
 </div></div>
+
+<div id="conclusion1" class="brim"><div class="content">
+	<h2>Conclusion</h2>
+</div></div>
+
+<div class="brim"><div class="content">
+	<p class="edge">The family of Paxos algorithms provides powerful primitives for building robust distributed systems and data structures like distributed switch, distributed variable (a foundation for a hashtable aka key/value storage), distributed log and a generic state machine.</p>
+
+	<p>For example we'll define a distributed switch and variable as a simple layer on the algorithm described in this post.</p>
+</div></div>
+
+<div class="brim examples1"><div class="content">
+	<h3 class="edge">Distributed switch</h3>
+
+	{% gist rystsov/0f5f6bcb82b9d666769d %}
+
+	<h3>Distributed variable</h3>
+
+	{% gist rystsov/23ff19e75903f6d87b39 %}
+</div></div>
+
+<div class="brim"><div class="content">
+	<p class="edge">If you read <a href="http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf">Paxos Made Simple</a> then you migth have noticed that the algorithm in this post is a little bit different. Leslie Lamport described a distributed switch (aka single degree paxos) and shown how to run multiple copies of it to build a distributed state machine.</p>
+
+	<blockquote>&gt; It seems that the "Paxos Made Simple" version is more complex. Is it really true?</blockquote>
+
+	<p>Yes it is, but it doesn't mean that it is worser; it just does more and it is natural to expect that it is more complex. For example Multi-Paxos:</p>
+
+	<ol>
+		<li>supports several concurrent state modifications if they don't conflict (see the $\alpha$ parameter)</li>
+		<li>keeps the history of previous states</li>
+	</ol>
+
+	<blockquote>&gt; Are the Multi-Paxos's extra features important?</blockquote>
+
+	<p>It depends. If we want to build a key/value storage then we can take Multi-Paxos or Raft and put the key/value logic behind it. In theory performance of the storage should be limited by network and disk throughput because the operations with different keys are independent and the algorithm supports concurency. In practice performance of the well known CP systems is low.</p>
+
+	<p>According to the official documents<sup><a href="http://wiki.apache.org/hadoop/ZooKeeper/Performance">[1]</a></sup> performance of the 3-node Zookeeper cluster is close to 20K ops per second. Etcd is another famous CP system and its performance is close to 5K ops per second<sup><a href="https://github.com/coreos/etcd/blob/master/Documentation/benchmarks/etcd-2-2-0-rc-benchmarks.md">[2]</a></sup>.</p>
+
+	<p>However avarage hardware can provide 150Mb/s for HDD, so the expected performance should be close to 200K ops per second.</p>
+
+	<p>It happens because Raft and Multi-Paxos has intristic limitation on thier concurency support. For example when Multi-Paxos inserts a value into the log it should invalidate all previous unknown positions in the log. The number of unknown positions depends on the same $\alpha$ parameter that controls the number of concurrent operations, so it's obvious that the performance as a function of $\alpha$ looks like an upside down parabola and achieves its maximum.</p>
+
+	<p>If we take another approach and run an independent instance of single degree Paxos presented in this post per each key then we can achieve much better performance because we don't coordinate the updates to different keys. This idea aligns both with academia and industry. For example, famous distributed systems researcher Peter Bailis made the <a href="https://www.youtube.com/watch?v=EYJnWttrC9k">Coordination-Avoiding Systems Design</a> talk about the similar idea. Folks behind the CockroachDB <a href="https://github.com/cockroachdb/cockroach/blob/master/docs/design.md">chose an transitional approach</a> for their db: they break the key space into a set of small ranges and run independent Raft implementation per each range.</p>
+
+	<p>So Multi-Paxos and Raft have advantage over single degree Paxos state machine, but for some applications (like key/value storages) those advantage are irrelevant and introduce redundant complexity.</p>
+</div></div>
