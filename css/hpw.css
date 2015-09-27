@@ -84,6 +84,13 @@ body {
 }
 
 
+.hpw .brim code {
+    margin-left: 0.3em;
+    margin-right: 0.3em;
+    font-family: monospace;
+}
+
+
 .hpw .brim p {
     margin-top: 0.5em;
 }
