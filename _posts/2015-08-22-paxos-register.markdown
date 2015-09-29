@@ -17,18 +17,6 @@ Imagine a service that provides an API to read and to write a write-once switch 
 
 The implementation of the service is straightforward when we plan to run it on a single node. But any single node solution has a reliability/availability problem: when the node goes off-line (due to crash or maintenance procedures) our service is unavailable. The obvious solution is to run a service on several nodes to achieve high availability. At that point we enter the realm of distributed systems and everything (including our service) gets more complicated. Try to think how to satisfy the desired properties listed above in a distributed environment (where nodes may temporary go offline and where network may lose messages) and you will see that consistency is a tough problem.
 
-Hopefully this task is already solved by the Paxos consensus algorithm. People usually use Paxos to build way more complex systems than the described service but the algorithm is also applicable here. Moreover the fact that the switch is one of the simplest distributed systems that can be built based on Paxos makes it a good entry point for the engineers who want to understand Paxos on an example.
+Hopefully this task is already solved by the Paxos consensus algorithm. People usually use Paxos to build way more complex systems than the described service but the algorithm is also applicable here. Moreover the fact that the switch is one of the simplest distributed systems that can be built based on Paxos makes it a good entry point for the engineers who want to understand Paxos by example.
 
-The description of the switch is written in a Python inspired pseudocode. I assume that every write to an instance variable is intercepted, redirected to a persistent storage and fsync-ed. Of course every read from an instance variable reads from the storage. The pseudocode follows the algorithm described in the [Paxos Made Simple](http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf) paper by Leslie Lamport, please read it to understand the idea behind the code and see the proof.
-
-Acceptors:
-
-{% gist rystsov/1614f7499d0aca0f8fb4 %}
-
-API:
-
-{% gist rystsov/324373b0de555a31ac45 %}
-
-Heart of the algorithm:
-
-{% gist rystsov/9de335004dc2718f70f4 %}
+<div class="confession">I wrote this post before I realised that single degree Paxos can be used as state machine itself. When I did it I saw that there is almost no difference between ditributed switch, variable or even CAS-guarded variable. Please read the <a href="{% post_url 2015-09-16-how-paxos-works %}">A memo on how Paxos works</a> post to get information on how to implement them.</div>
