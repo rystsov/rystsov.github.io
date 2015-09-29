@@ -27,7 +27,7 @@ marker: hpw
 	
 	<blockquote>&gt; Doesn't it violate CAP theorem?</blockquote>
 		
-		<p>No, it doesn't. Availability in the CAP[wiki]-sense is very strict. For example, a system using two-phase commit (2PC) algorithm and a system using Paxos algorithm are both unavailable in a CAP sense. It makes sense for the 2PC system since the 2PC's coordinator is a single point of failure but it's strange for Paxos because it tolerates up to N fails out of 2N+1 nodes.</p>
+		<p>No, it doesn't. Availability in the <a class="link" href="https://en.wikipedia.org/wiki/CAP_theorem">CAP</a>-sense is very strict. For example, a system using two-phase commit (2PC) algorithm and a system using Paxos algorithm are both unavailable in a CAP sense. It makes sense for the 2PC system since the 2PC's coordinator is a single point of failure but it's strange for Paxos because it tolerates up to N fails out of 2N+1 nodes.</p>
 
 		<p>So Paxos is an available CP system.</p>
 	
@@ -101,9 +101,9 @@ marker: hpw
 	<p class="edge">Let's prove it. As you can see from the sources the system generates events of different kind (emit_executed, emit_prepared, emit_accepted and emit_promised). We will show that:</p>
 
 		<ol>
-			<li>there is a relation[wiki] between emit_accepted events which captures causality between them</li>
+			<li>there is a <a class="link" href="https://en.wikipedia.org/wiki/Binary_relation">relation</a> between emit_accepted events which captures causality between them</li>
 			<li>the relation is also defined on emit_executed</li>
-			<li>the reduction of the relation on emit_executed is a total order[wiki]</li>
+			<li>the reduction of the relation on emit_executed is <a class="link" href="https://en.wikipedia.org/wiki/Total_order">total order</a></li>
 		</ol>
 
 		<p>The 3rd bullet means that any successful change is an effect of the previously successful change.</p>
