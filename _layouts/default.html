@@ -7,8 +7,8 @@
         <link href="{{ site.url }}/css/reset.css" rel="stylesheet">
     {% endif %}
 
-    {% if page.marker == "hpw" %}
-        <link href="{{ site.url }}/css/hpw.css" rel="stylesheet">
+    {% if page.marker %}
+        <link href="{{ site.url }}/css/{{ page.marker }}.css" rel="stylesheet">
     {% endif %}
 
     {% unless page.ignore_css %}

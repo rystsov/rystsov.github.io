@@ -1,0 +1,20 @@
+.front .who_am_i {
+    position: relative;
+    min-height: 150px;
+}
+
+.front img {
+    width: 150px;
+    position: absolute;
+}
+
+.front .dossier {
+    padding-top: 0.3em;
+    margin-left: 150px;
+    padding-left: 1em;
+}
+
+.front .amazon {
+    margin-top: 1.5em;
+    font-weight: bold;
+}
