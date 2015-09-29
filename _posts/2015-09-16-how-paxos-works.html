@@ -14,7 +14,7 @@ marker: hpw
 	<h1>A memo on how Paxos works</h1>
 	<p>
 		<span class="label">Abstract.</span>
-		<span class="text">Once I understood Paxos but a couple of months later I realized that I actually didn't. I reread 'Paxos Made Simple' but it was almost as hard as the first time so I wrote this memo to help me in the future to get Paxos faster.</span>
+		<span class="text">One day I understood Paxos, but a couple of months later I realized that I actually didn't. I reread 'Paxos Made Simple' but it was almost as hard as the first time so I wrote this memo to help myself in the future to get Paxos faster.</span>
 	</p>
 </div>
 
@@ -23,13 +23,13 @@ marker: hpw
 </div></div>
 
 <div class="brim"><div class="content">
-	<p class="edge">Paxos is a class of synod-based algorithms for building available consistent distributed systems on top of asynchronous and unreliable network. For example if you're building a key/value storage then Paxos will help you to keep it working in the present of network errors (partition-tolerance), node failures (availability) and to produce non-contradictory view to different clients (consistency).</p>
+	<p class="edge">Paxos is a class of synod-based algorithms for building available consistent distributed systems on top of asynchronous and unreliable network. For example, if you're building a key/value storage, Paxos will help you to keep it working in the presence of network errors (partition-tolerance) and node failures (availability), and will help you produce non-contradictory view to different clients (consistency).</p>
 	
 	<blockquote>&gt; Doesn't it violate CAP theorem?</blockquote>
 		
-		<p>No, it doesn't. Availability in the CAP-sense is very strict. For example, a system using two-phase commit (2PC) algorithm and a system using Paxos algorithm are both unavailable in a CAP sense. It makes sense for the 2PC system since the 2PC's coordinator is a single point of failure but it's strange for Paxos because it tolerates up to N fails out of 2N+1 nodes.</p>
+		<p>No, it doesn't. Availability in the <a class="link" href="https://en.wikipedia.org/wiki/CAP_theorem">CAP</a>-sense is very strict. For example, a system using two-phase commit (2PC) algorithm and a system using Paxos algorithm are both unavailable in a CAP sense. It makes sense for the 2PC system since the 2PC's coordinator is a single point of failure but it's strange for Paxos because it tolerates up to N fails out of 2N+1 nodes.</p>
 
-		<p>So Paxos is an available in common sense CP system.</p>
+		<p>So Paxos is an available CP system.</p>
 	
 	<blockquote>&gt; What can we build with Paxos?</blockquote>
 		
@@ -37,33 +37,33 @@ marker: hpw
 
 		<p>We can build a distributed state machine and implement any algorithm on top of it. But it's very hard to think about an unbounded domain, so in this post we consider Paxos as a foundation for building distributed data storages.</p>
 
-		<p>It's a common practice for storages to have write operations to mutate its state and read operations to query it. Paxos is different, it guaranties consistency only for write operations, so to query its state the system makes read, writes the state back and when the state change is accepted the system queries the written state.</p>
+		<p>It's a common practice for storages to have write operations to mutate its state and read operations to query it. Paxos is different, it guarantees consistency only for write operations, so to query its state the system makes read, writes the state back and when the state change is accepted the system queries the written state.</p>
 
 	<blockquote>&gt; Wait, don't pay so much attention to the details, what is the topology of the Paxos-based distributed system?</blockquote>
 
-		<p>Usually a Paxos-based distributed system consists of clients, proposers and acceptors. Clients mutate and query the state of the system, proposers process the client's commands and acceptors store the information.</p>
+		<p>Usually a Paxos-based distributed system consists of clients, proposers and acceptors. Clients mutate and query the state of the system, proposers process the client's commands and acceptors store information.</p>
 
-		<p>The Paxos topology is similar to the typical 3-tier application where clients correspond to web-browsers, proposers to front-end servers and acceptors to databases.</p>
+		<p>The Paxos topology is similar to the typical 3-tier application where clients correspond to web-browsers, proposers to web servers and acceptors to databases.</p>
 
-	<blockquote>&gt; If proposals are similar to front-end servers does it mean that the proposals are stateless?</blockquote>
+	<blockquote>&gt; If proposers are similar to front-end servers does it mean that the proposers are stateless?</blockquote>
 
-		<p>No, proposals should be able to generate a global unique ID (ballot number) for every request. They store last used ballot number to be able to generate a new one which must be greater. For example servers may have unique coprime numbers as ID and pick next number which is divisible by the current node's ID and coprime with the ID of the other nodes to be next ballot number. If the IDs of two servers are 3 and 5 then two sequences they generate are 3,6,9,12,18,.. and 5,10,20,25,35,..</p>
+		<p>No, proposers should be able to generate a global unique ID (ballot number) for every request. They store the last used ballot number to be able to generate a new one which must be greater. For example servers may have unique co-prime numbers as ID and pick next number which is divisible by the current node's ID and coprime with the ID of the other nodes to be next ballot number. If the IDs of two servers are 3 and 5 then two sequences they generate are 3,6,9,12,18,.. and 5,10,20,25,35,..</p>
 
-	<blockquote>&gt; Ok, how do proposal and acceptors communicate to agree on the system state?</blockquote>
+	<blockquote>&gt; Ok, how do proposers and acceptors communicate to agree on the system state?</blockquote>
 
 		<p>Let's take a look on how a Paxos-based distributed system handles a state mutation request. The typical case is:</p>
 
 		<ol>
-			<li>Client connects to any single proposal and issue the command.</li>
-			<li>The proposal commnicates with the acceptors and agree on the system's state.</li>
-			<li>Once the change is accepted all reads should reflect the change.</li>
+			<li>Client connects to any proposer and issues the command.</li>
+			<li>The proposer commnicates with the acceptors and they agree on the system's state.</li>
+			<li>Once the change is accepted all future reads should reflect the change.</li>
 		</ol>
 
 		<img src="{{ site.url }}/images/paxos-seq.png" width="600"/>
 
-		<p>On the diagram we see two rounds of proposal-acceptors communications. We also can estimate that the system generates from <code>4f+6</code> to <code>8f+6</code> messages for every change/read where <code>f</code> is a number of failures that the system can tolerate.</p>
+		<p>On the diagram we see two rounds of proposer-acceptors communications. We also can estimate that the system generates from <code>4f+6</code> to <code>8f+6</code> messages for every change/read where <code>f</code> is a number of failures that the system can tolerate.</p>
 
-		<p>If something bad happens and client doesn't receive a confirmation then she should query the system to understand if her change was applied or not. For example it may happen when the concurrent requests from the clients may collide and abort each other.</p>
+		<p>If something bad happens and client doesn't receive a confirmation then she should query the system to understand if her change was applied or not. For example it may happen when the concurrent requests from the clients collide and abort each other.</p>
 </div></div>
 
 <div id="code1" class="brim"><div class="content">
@@ -71,15 +71,15 @@ marker: hpw
 </div></div>
 
 <div class="brim"><div class="content">
-	<p class="edge">Ok. Let's start with the acceptor's code. As you can see from the sequence diagram it should support two phases: prepare and accept. They are supported via the corresponding endpoints. The algorithm itself is written in a Python inspired pseudocode. I assume that every hdd.write call is flushed to the disk.</p>
+	<p class="edge">Ok. Let's start with the acceptor's code. As you can see from the sequence diagram it should support two phases: preparation and acceptance. They are supported via the corresponding endpoints. The algorithm itself is written in a Python inspired pseudocode. I assume that every hdd.write call is flushed to the disk.</p>
 
 		{% gist rystsov/44b25528e74bb617726d %}
 
-		<p>As you remember clients communicate only with the proposals so it's a good idea to explore its API. I did mention before that Paxos guarantees consistency only for write requests so it shouldn't be a surprise that the proposer's API consists just of one <code>change_query</code> endpoint.</p>
+		<p>As you remember, clients communicate only with the proposers so it's a good idea to explore its API. I did mention before that Paxos guarantees consistency only for write requests so it shouldn't be a surprise that the proposer's API consists just of one <code>change_query</code> endpoint.</p>
 
-		<p>It accepts two pure function: <code>change</code> and <code>query</code>. The <code>change</code> function validates the old state and maps it into the new state (or throws an exception). The <code>query</code> function makes a projection of the new state and returns it to the client.</p>
+		<p>It accepts two pure functions: <code>change</code> and <code>query</code>. The <code>change</code> function validates the old state and maps it into the new state (or throws an exception). The <code>query</code> function makes a projection of the new state and returns it to the client.</p>
 
-		<p>Consider that we want to work with a distributed variable then we may use identity transform both as <code>change</code> and as <code>query</code>. If we want to perform a CAS-guarded state transition from old to new value then we should use the following change-generator:</p>
+		<p>Consider that we want to work with a distributed variable, then we may use identical transformation both as <code>change</code> and as <code>query</code>. If we want to perform a CAS-guarded state transition from old to new value then we should use the following change-generator:</p>
 
 		{% gist rystsov/1517327d88eb3576ef94 %}
 
@@ -101,9 +101,9 @@ marker: hpw
 	<p class="edge">Let's prove it. As you can see from the sources the system generates events of different kind (emit_executed, emit_prepared, emit_accepted and emit_promised). We will show that:</p>
 
 		<ol>
-			<li>there is a relation between emit_accepted events which captures causality between them</li>
+			<li>there is a <a class="link" href="https://en.wikipedia.org/wiki/Binary_relation">relation</a> between emit_accepted events which captures causality between them</li>
 			<li>the relation is also defined on emit_executed</li>
-			<li>the reduction of the relation on emit_executed is total order</li>
+			<li>the reduction of the relation on emit_executed is <a class="link" href="https://en.wikipedia.org/wiki/Total_order">total order</a></li>
 		</ol>
 
 		<p>The 3rd bullet means that any successful change is an effect of the previously successful change.</p>
@@ -118,7 +118,7 @@ marker: hpw
 		    <tr><td>emit_promised(n,...)</td><td class="abbr">$\ddot{n}^1$</td></tr>
 		</table>
 
-		<p>$\bar{n}^1$ and $\bar{n}^2$ are single events, but $\ddot{n}^1$ and $\ddot{n}^2$ each is a set of events where different events correspond to different acceptors.</p>
+		<p>$\bar{n}^1$ and $\bar{n}^2$ are single events, but $\ddot{n}^1$ and $\ddot{n}^2$ are sets of events where each event corresponds to an acceptor.</p>
 
 		<p>By the definition:</p>
 
@@ -128,7 +128,7 @@ marker: hpw
 		
 		<p>Let's extend $\subset$ to be transitive: we say that <span class="imb">$\mathrm{s}(\ddot{a}^2) \subset \mathrm{s}(\ddot{c}^2)$</span> if <span class="imb">$\mathrm{s}(\ddot{a}^2) \subset \mathrm{s}(\ddot{b}^2)$</span> and <span class="imb">$\mathrm{s}(\ddot{b}^2) \subset \mathrm{s}(\ddot{c}^2)$</span>. Since causality is also transitive this extension respects it.</p>
 
-		<p>We want to extend extend the $\subset$ relation on $\bar{x}^2$ events. We say that <span class="imb">$\mathrm{s}(\bar{x}^2) \subset y$</span> if <span class="iml">$\forall \ddot{x}^2 \; \mathrm{s}(\ddot{x}^2) \subset y$</span>. For example</p>
+		<p>We want to extend the $\subset$ relation on $\bar{x}^2$ events. We say that <span class="imb">$\mathrm{s}(\bar{x}^2) \subset y$</span> if <span class="iml">$\forall \ddot{x}^2 \; \mathrm{s}(\ddot{x}^2) \subset y$</span>. For example</p>
 		
 		$$\mathrm{s}(\bar{x}^2) \subset \mathrm{s}(\bar{y}^2)$$
 
@@ -153,7 +153,7 @@ marker: hpw
 
 			$$n&lt;m \;\Rightarrow\; \mathrm{s}(\bar{n}^2) \subset \mathrm{s}(\ddot{m}^2)$$
 
-			<p>Let's prove it.</p>
+			<p>Let's do it.</p>
 		</div>
 	<div class="label">Proof.</div>
 		<div class="text">
@@ -211,7 +211,7 @@ marker: hpw
 
 			$$\mathrm{N} := \bar{b}.\mathrm{vassals}.[\mathrm{node\_id}] \cap \ddot{a}^2.[\mathrm{node\_id}] \neq \emptyset$$
 
-			<p>where <span class="iml">$\bigtriangleup.[\odot]\equiv\bigtriangleup.\mathrm{map}(x\to x.\odot)$</span>.</p>
+			<p>where <span class="iml">$\bigtriangleup.[\odot]:=\bigtriangleup.\mathrm{map}(x\to x.\odot)$</span>.</p>
 			
 			<p>Let <span class="iml">$n \in \mathrm{N}$</span>, <span class="imb">$\dot{a}^2 \in \ddot{a}^2 \cap \mathrm{E[n]}$</span> and <span class="imb">$\dot{b}^1 \in \ddot{b}^1 \cap \mathrm{E[n]}$</span> where <span class="imb">$\mathrm{E[n]}$</span> are events that happened on the $n$ node.</p>
 
@@ -256,7 +256,7 @@ marker: hpw
 </div></div>
 
 <div class="brim"><div class="content">
-	<p class="edge">If you read <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf">Paxos Made Simple</a> then you might have noticed that the algorithm in this post is a little bit different. Leslie Lamport described a distributed switch (aka single degree Paxos) and shown how to run multiple copies of it to build a distributed state machine.</p>
+	<p class="edge">If you read <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf">Paxos Made Simple</a> then you might have noticed that the algorithm in this post is a little bit different. Leslie Lamport described a distributed switch (aka single degree Paxos) and shown how to run multiple copies of it to build a distributed state machine (Multi-Paxos).</p>
 
 	<blockquote>&gt; It seems that the "Paxos Made Simple" version is more complex. Is it really true?</blockquote>
 
@@ -269,7 +269,7 @@ marker: hpw
 
 	<blockquote>&gt; Are the Multi-Paxos's extra features important?</blockquote>
 
-	<p>It depends. If we want to build a key/value storage then we can take Multi-Paxos or Raft and put the key/value logic behind it. In theory performance of the storage should be limited by network and disk throughput because the operations with different keys are independent and the algorithm supports concurrency. In practice performance of the well known CP systems is low.</p>
+	<p>It depends. If we want to build a key/value storage then we can take Multi-Paxos or Raft and put the key/value logic behind it. In theory performance of the storage should be limited by network and disk throughput because the operations with different keys are independent and the algorithm supports concurrency. But in practice performance of the well known CP systems is low.</p>
 
 	<p>According to the official documents<sup><a class="link" href="http://wiki.apache.org/hadoop/ZooKeeper/Performance">[1]</a></sup> performance of the 3-node Zookeeper cluster is close to 20K ops per second. Etcd is another famous CP system and its performance is close to 5K ops per second<sup><a class="link" href="https://github.com/coreos/etcd/blob/master/Documentation/benchmarks/etcd-2-2-0-rc-benchmarks.md">[2]</a></sup>.</p>
 
@@ -277,7 +277,7 @@ marker: hpw
 
 	<p>It happens because Raft and Multi-Paxos has intrinsic limitation on their concurrency support. For example when Multi-Paxos inserts a value into the log it should invalidate all previous unknown positions in the log. The number of unknown positions depends on the same $\alpha$ parameter that controls the number of concurrent operations, so it's obvious that the performance as a function of $\alpha$ looks like an upside down parabola and achieves its maximum.</p>
 
-	<p>If we take another approach and run an independent instance of single degree Paxos presented in this post per each key then we can achieve much better performance because we don't coordinate the updates to different keys. This idea aligns both with academia and industry. For example, distributed systems researcher Peter Bailis made the <a class="link" href="https://www.youtube.com/watch?v=EYJnWttrC9k">Coordination-Avoiding Systems Design</a> talk about the similar idea. Folks behind the CockroachDB <a class="link" href="https://github.com/cockroachdb/cockroach/blob/master/docs/design.md">chose an transitional approach</a> for their db: they break the key space into a set of small ranges and run independent Raft implementation per each range.</p>
+	<p>If we take another approach and run an independent instance of single degree Paxos presented in this post per each key then we can achieve much better performance because we don't coordinate the updates to different keys. This idea aligns both with academia and industry. For example, distributed systems researcher Peter Bailis made the <a class="link" href="https://www.youtube.com/watch?v=EYJnWttrC9k">Coordination-Avoiding Systems Design</a> talk about the similar idea. Folks behind the CockroachDB <a class="link" href="https://github.com/cockroachdb/cockroach/blob/master/docs/design.md">chose a transitional approach</a> for their db: they break the key space into a set of small ranges and run independent Raft implementation per each range.</p>
 
 	<p>So Multi-Paxos and Raft have advantage over single degree Paxos state machine, but for some applications (like key/value storages) those advantage are irrelevant and introduce redundant complexity.</p>
 </div></div>
