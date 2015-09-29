@@ -11,8 +11,4 @@ has_comments: true
 
 In the previous [article]({% post_url 2015-08-22-paxos-register %}) I showed how to create a write-once distributed switch. However in real life we usually want to mutate state. So Let's fix it and design a distributed variable.
 
-{% gist rystsov/a45793daa1662a921479 %}
-
-{% gist rystsov/55b68e8ef68b977598b1 %}
-
-{% gist rystsov/7f8db599d44ee635655f %}
+<div class="confession">There was variable's pseudocode but later I realised that single degree Paxos can be used as state machine itself. When I did it I saw that there is almost no difference between ditributed switch, variable or even CAS-guarded variable. Please read the <a href="{% post_url 2015-09-16-how-paxos-works %}">A memo on how Paxos works</a> post to understand it and to get information on how to build them.</div>

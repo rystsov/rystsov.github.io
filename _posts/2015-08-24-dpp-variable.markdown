@@ -15,7 +15,9 @@ Lets take a look on the coordinator which manages the process of changing the me
 
 {% gist rystsov/0644f6cf7b45f5a72e81 %}
 
-As you can see, to change membership we execute several simple steps like increasing the quorum size or altering the set of nodes. But we can't think that those simple changes happen instantly since the old value may be used in the running '_read_write_read' operation. It makes sense to wait until all running operations with old value are finished. This is implemented via the 'era' variable and 'the _epic_change' method.
+As you can see, to change membership we execute several simple steps like increasing the quorum size or altering the set of nodes. But we can't think that those simple changes happen instantly since the old value may be used in the running '_read_write_read' operation. It makes sense to wait until all running operations with old value are finished. This is implemented via the 'era' variable and the '_epic_change' method.
+
+<div class="confession">I wrote this post before I realised that single degree Paxos can be used as state machine itself. When I did it I saw that there is almost no difference between ditributed switch, variable or even CAS-guarded variable. <b>TODO:</b> rewrite this post to extend code from the <a href="{% post_url 2015-09-16-how-paxos-works %}">A memo on how Paxos works</a> post to work in the dynamic environment.</div>
 
 The acceptors methods are left intact.
 
