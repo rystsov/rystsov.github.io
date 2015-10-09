@@ -50,53 +50,53 @@ body {
 
 /* epaxos700 */
 
-.hpw .brim h3 {
+.epaxos700 .brim h3 {
     text-align: center;
     font-size: 1.3em;
     font-weight: bold;
 }
-.hpw .brim h2 {
+.epaxos700 .brim h2 {
     text-align: center;
     font-size: 1.5em;
     font-weight: bold;
 }
-.hpw #epaxos1 {
+.epaxos700 #epaxos1 {
     margin-top: 1.5em;
     margin-bottom: 1.5em;
 }
-.hpw #next1 {
+.epaxos700 #next1 {
     margin-top: 1.5em;
     margin-bottom: 1.5em;
 }
 
 
-.hpw .brim {
+.epaxos700 .brim {
     padding-left: 0.7em;
     padding-right: 0.7em;
 }
 
 
-.hpw .brim blockquote {
+.epaxos700 .brim blockquote {
     
 }
 
 
-.hpw .brim .link {
+.epaxos700 .brim .link {
     background: yellow;
     color: black;
     text-decoration: none;
 }
 
 
-.hpw .brim p {
+.epaxos700 .brim p {
     margin-top: 0.5em;
 }
-.hpw .brim .edge {
+.epaxos700 .brim .edge {
     margin-top: 0;
 }
 
 
-.hpw .brim img {
+.epaxos700 .brim img {
     margin-top: 0.5em;
     margin-left: auto;
     margin-right: auto;
@@ -104,15 +104,15 @@ body {
 }
 
 
-.hpw .brim ol {
+.epaxos700 .brim ol {
     margin-top: 0.5em;
     list-style-type: decimal;
     padding-left: 40px;
 }
-.hpw .brim li { }
+.epaxos700 .brim li { }
 
 
-.hpw .brim .gist {
+.epaxos700 .brim .gist {
     margin-top: 1em;
     margin-bottom: 1em;
 }
