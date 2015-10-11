@@ -15,19 +15,17 @@ marker: epaxos700
 </div></div>
 
 <div class="brim"><div class="content">
-	<p class="edge">Raft is widely adopted consensus algorithm. Moreover it has good performance characteristics. By using batching and pipelining people managed to archive incredible performance characteristics.</p>
+	<p class="edge">Raft is widely adopted consensus algorithm. Moreover it has good performance characteristics.</p>
 
 	<blockquote class="twitter-tweet" data-conversation="none" lang="en"><p lang="en" dir="ltr"><a href="https://twitter.com/rystsov">@rystsov</a> <a href="https://twitter.com/BrandonPhilips">@BrandonPhilips</a> It is not. It is CPU. Our unoptimized raw raft can handle 200k small request on ec2.large. : )</p>&mdash; Xiang Li (@xiangli0227) <a href="https://twitter.com/xiangli0227/status/649330617444732928">September 30, 2015</a></blockquote>
 
-	<p>The idea of batching and pipelining heavy depends on stable leader. IMHO, leader in distributed system is oxymoron.</p>
+	<p>Both of the main technics, batching and pipelining, which help to achieve them depends on an idea of stable leader. IMHO:</p>
 
 	<blockquote class="twitter-tweet" lang="en"><p lang="en" dir="ltr">Leader in distributed systems is oxymoron</p>&mdash; Rystsov Denis (@rystsov) <a href="https://twitter.com/rystsov/status/650081734969593856">October 2, 2015</a></blockquote>
 
 	<p>It’s pretty obvious that in case of troubles with leader (like death or performance degradation) the whole system will suffer. Folks behind <a href="https://www.cs.cmu.edu/~dga/papers/epaxos-sosp2013.pdf">EPaxos</a> measured the performance degradation in case of leader failure and made a nice chart.</p> 
 
 	<img src="{{ site.url }}/images/leadersdeath.png" width="600"/>
-
-	<p>The performance degradation isn’t an implementation issue but is an intrinsic limitation of having a leader.</p>
 </div></div>
 
 <div id="next1" class="brim"><div class="content">
@@ -35,7 +33,7 @@ marker: epaxos700
 </div></div>
 
 <div class="brim"><div class="content">
-	<p class="edge">EPaxos eliminates leader and solves the associated problems. It seems that Paxos saga is over and we have found the holy grail, haven’t we?</p>
+	<p class="edge">EPaxos eliminates leader and solves the associated problems. It seems that Paxos saga (Paxos, Disk-, Cheap-, Fast-, Generalized-, Vertical- Paxoses, Mencius and others) is over and we have found the holy grail, haven’t we?</p>
 
 	<p>Actually there a lot of undiscovered yet EPaxos-like systems with different operational characteristics. Let me demonstate it. EPaxos’s authors wrote:</p>
 
