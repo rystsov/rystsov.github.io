@@ -11,7 +11,7 @@ marker: epaxos700
 ---
 
 <div id="epaxos1" class="brim"><div class="content">
-	<h2>EPaxos, Transactions, and the next 700 *Paxos systems</h2>
+	<h2>EPaxos, Transactions and the next 700 *Paxos systems</h2>
 </div></div>
 
 <div class="brim"><div class="content">
@@ -45,13 +45,7 @@ marker: epaxos700
 
 	<ol>
 		<li>run a bunch of <a href="http://rystsov.info/2015/09/16/how-paxos-works.html">single degree Paxos state machines</a></li>
-		<li>peak a favorite transactions model to support multi-object updates e.g.:
-			<ol>
-				<li><a href="http://www.cs.cornell.edu/andru/cs711/2002fa/reading/sagas.pdf">Sagas</a></li>
-				<li><a href="http://www.bailis.org/papers/ramp-sigmod2014.pdf">RAMP transactions</li>
-				<li>Yabandeh’s transactions <a href="https://drive.google.com/file/d/0B9GCVTp_FHJIMjJ2U2t6aGpHLTFUVHFnMTRUbnBwc2pLa1RN">[1]</a> <a href="http://www.cockroachlabs.com/blog/how-cockroachdb-distributes-atomic-transactions">[2]</a> <a href="http://rystsov.info/2012/09/01/cas.html">[3]</a></li>
-			</ol>
-		</li>
+		<li>peak a favorite transactions model to support multi-object updates e.g. <a href="http://www.cs.cornell.edu/andru/cs711/2002fa/reading/sagas.pdf">Sagas</a>, <a href="http://www.bailis.org/papers/ramp-sigmod2014.pdf">RAMP transactions</a> or Yabandeh’s transactions <a href="https://drive.google.com/file/d/0B9GCVTp_FHJIMjJ2U2t6aGpHLTFUVHFnMTRUbnBwc2pLa1RN">[1]</a> <a href="http://www.cockroachlabs.com/blog/how-cockroachdb-distributes-atomic-transactions">[2]</a> <a href="http://rystsov.info/2012/09/01/cas.html">[3]</a></li>
 		<li>use supercompication technics to remove redundancy and to "merge" transactions and paxos into one algorithm</li>
 		<li>write a paper on new *Paxos algorithm</li>
 	</ol>
