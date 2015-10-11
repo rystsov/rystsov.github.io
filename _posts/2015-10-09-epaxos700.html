@@ -11,7 +11,7 @@ marker: epaxos700
 ---
 
 <div id="epaxos1" class="brim"><div class="content">
-	<h2>EPaxos, Transactions and the next 700 *Paxos systems</h2>
+	<h2>EPaxos, transactions and the next 700 Paxos systems</h2>
 </div></div>
 
 <div class="brim"><div class="content">
@@ -29,7 +29,7 @@ marker: epaxos700
 </div></div>
 
 <div id="next1" class="brim"><div class="content">
-	<h3>The next 700 *Paxos systems</h3>
+	<h3>The next 700 Paxos systems</h3>
 </div></div>
 
 <div class="brim"><div class="content">
@@ -42,10 +42,10 @@ marker: epaxos700
 	<p>They achieves the goals by dealing with a set of objects and doing updates concurrently if they are non-interfering. It sounds just like transaction. By this time it should be clear how build next 700 *Paxos algorithms:</p>
 
 	<ol>
-		<li>run a bunch of <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">single degree Paxos state machines</a></li>
-		<li>peak a favorite transactions model to support multi-object updates e.g. <a class="link" href="http://www.cs.cornell.edu/andru/cs711/2002fa/reading/sagas.pdf">Sagas</a>, <a class="link" href="http://www.bailis.org/papers/ramp-sigmod2014.pdf">RAMP transactions</a>, Yabandeh’s transactions <a class="link"  href="https://drive.google.com/file/d/0B9GCVTp_FHJIMjJ2U2t6aGpHLTFUVHFnMTRUbnBwc2pLa1RN">[1]</a> <a class="link" href="http://www.cockroachlabs.com/blog/how-cockroachdb-distributes-atomic-transactions">[2]</a> <a class="link" href="http://rystsov.info/2012/09/01/cas.html">[3]</a> or <a class="link" href="https://en.wikipedia.org/wiki/Two-phase_commit_protocol">2PC</a></li>
-		<li>remove redundancy and merge transactions with Paxos into one algorithm</li>
-		<li>write a paper on new algorithm</li>
+		<li>Run a bunch of <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">single degree Paxos state machines</a></li>
+		<li>Peak a favorite transactions model to support multi-object updates e.g. <a class="link" href="http://www.cs.cornell.edu/andru/cs711/2002fa/reading/sagas.pdf">Sagas</a>, <a class="link" href="http://www.bailis.org/papers/ramp-sigmod2014.pdf">RAMP transactions</a>, Yabandeh’s transactions <a class="link"  href="https://drive.google.com/file/d/0B9GCVTp_FHJIMjJ2U2t6aGpHLTFUVHFnMTRUbnBwc2pLa1RN">[1]</a> <a class="link" href="http://www.cockroachlabs.com/blog/how-cockroachdb-distributes-atomic-transactions">[2]</a> <a class="link" href="http://rystsov.info/2012/09/01/cas.html">[3]</a> or <a class="link" href="https://en.wikipedia.org/wiki/Two-phase_commit_protocol">2PC</a></li>
+		<li>Remove redundancy and merge transactions with Paxos into one algorithm</li>
+		<li>Write a paper on new algorithm</li>
 	</ol>
 
 	<img src="{{ site.url }}/images/underpants.jpg"/>
@@ -55,8 +55,8 @@ marker: epaxos700
 	<p>BTW, If you’re developing a real-world system then you probably want to:</p>
 
 	<ol>
-		<li>make system works in a <a class="link" href="http://rystsov.info/2015/07/19/dynamic-plain-paxos.html">dynamic environment</a></li>
-		<li>support <a class="link" href="http://rystsov.info/2015/08/26/sharded-paxos.html">sharding</a></li>
+		<li>Make system works in a <a class="link" href="http://rystsov.info/2015/07/19/dynamic-plain-paxos.html">dynamic environment</a></li>
+		<li>Support <a class="link" href="http://rystsov.info/2015/08/26/sharded-paxos.html">sharding</a></li>
 	</ol>
 </div></div>
 
