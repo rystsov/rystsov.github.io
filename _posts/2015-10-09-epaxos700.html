@@ -1,9 +1,9 @@
 ---
 layout: post
 title: rystsov::epaxos
-name: EPaxos, transactions and the next 700 *Paxos systems
+name: EPaxos, transactions and the next 700 Paxos systems
 tags: ["pre_distr"]
-desc: "EPaxos, transactions and the next 700 *Paxos systems"
+desc: "EPaxos, transactions and the next 700 Paxos systems"
 has_comments: true
 has_math: true
 ignore_css: true
@@ -39,7 +39,7 @@ marker: epaxos700
 
 	<blockquote>The main goals when designing EPaxos were: (1) optimal commit latency in the wide area, (2) optimal load balancing across all replicas, to achieve high throughput, and (3) graceful performance degradation when some replicas become slow or crash</blockquote>
 
-	<p>They achieves the goals by dealing with a set of objects and doing updates concurrently if they are non-interfering. It sounds just like transaction. By this time it should be clear how build next 700 *Paxos algorithms:</p>
+	<p>They achieves the goals by dealing with a set of objects and doing updates concurrently if they are non-interfering. It sounds just like transaction. By this time it should be clear how build next 700 Paxos algorithms:</p>
 
 	<ol>
 		<li>Run a bunch of <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">single degree Paxos state machines</a></li>
