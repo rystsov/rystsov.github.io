@@ -1,0 +1,67 @@
+---
+layout: post
+title: "rystsov::Read write quorums in Paxos"
+name: "Read write quorums in Paxos"
+tags: ["pre_distr"]
+desc: "About read write quorums in plain Paxos"
+has_comments: true
+has_math: true
+ignore_css: true
+marker: read-write
+---
+
+<div id="read-write1" class="brim"><div class="content">
+	<h2>Read write quorums in Paxos</h2>
+</div></div>
+
+<div class="brim"><div class="content">
+	<p class="edge">In the <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/vertical-paxos.pdf">Vertical Paxos</a> and <a class="link" href="http://courses.csail.mit.edu/6.852/01/papers/PaxosX40.pdf">The ABCD's of Paxos</a> papers it has been observed that Paxos can be generalized by utilizing different read and write quorums. This idea can be demonstrated with the Single Decree Paxos.</p>
+
+	<h3>How Paxos works</h3>
+
+	<img src="{{ site.url }}/images/rw-33.png" width="500"/>
+
+	<p>First we'll refresh our knowledge on how Paxos works (for the complete explanation see the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos Works</a> post) and then we'll adapt it to use the idea behind read and write quorums. If we have 4 nodes paxos cluster and want to change a value then we should follow the classic algorithm:</p>
+
+	<ol>
+		<li>request acceptors to provide the current value</li>
+		<li>await a quorum (at least 3 nodes) of the acceptor's responses</li>
+		<li>select the value with max ballot number</li>
+		<li>perform a transformation of the value</li>
+		<li>send the new value back to the acceptors</li>
+		<li>await a quorum (at least 3 nodes) of the acceptor's responses</li>
+		<li>inform a client that the change was applied</li>
+	</ol>
+
+	<h3>Read write quorums</h3>
+
+	<img src="{{ site.url }}/images/rw-23.png" width="500"/>
+
+	<p>As you can see, we should achieve a quorum of the acceptor's responses twice. Let us call the first quorum as read quorum and the second as write quorum. In the original Paxos paper the size of those quorums is fixed and equal to n/2+1 (where n is the size of the cluster). It turns out that we can have other configurations of the read/write quorums if quorums overlap. For example if read quorum's size is 2 then write quorum's size should be at least 3.</p>
+
+	<p>With this property the classic algorithm can be adjusted to:</p>
+
+	<ol>
+		<li>request acceptors to provide the current value</li>
+		<li>await a read quorum (at least 2 nodes) of the acceptor's responses</li>
+		<li>select the value with max ballot number</li>
+		<li>perform a transformation of the value</li>
+		<li>send the new value back to the acceptors</li>
+		<li>await a write quorum (at least 3 nodes) of the acceptor's responses</li>
+		<li>inform a client that the change was applied</li>
+	</ol>
+</div></div>
+
+<div class="brim alt why1"><div class="content">
+	This modification is very important and it will help us to prove the correctness of membership change.	
+</div></div>
+
+<div class="brim"><div class="content">
+	<p>Some might think that this property is hard to prove but actually the proof that I used in the "How Paxos Works" remains the same. Since we don't use the size of read & write quorums and only require them to overlap:</p>
+
+	$$(\mathrm{N} := \bar{b}^1.\mathrm{reads}.[\mathrm{node\_id}] \cap \bar{a}^2.\mathrm{writes}.[\mathrm{node\_id}]) \neq \emptyset$$
+
+	<p>it works perfectly then we vary the size of the read/write quorums.</p>
+
+	<div class="qed">Q.E.D.</div>
+</div></div>
