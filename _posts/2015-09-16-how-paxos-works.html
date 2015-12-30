@@ -11,7 +11,7 @@ marker: hpw
 ---
 
 <div class="abstract">
-	<h1>A memo on how Paxos works</h1>
+	<h1>How Paxos works</h1>
 	<p>
 		<span class="label">Abstract.</span>
 		<span class="text">One day I understood Paxos, but a couple of months later I realized that I actually didn't. I reread 'Paxos Made Simple' but it was almost as hard as the first time so I wrote this memo to help myself in the future to get Paxos faster.</span>
@@ -209,7 +209,7 @@ marker: hpw
 			
 			<p>Proposer should receive promises from a majority of the acceptors before it generates a $\ddot{b}^1$ event. It guarantees truth of the following expression:</p>
 
-			$$\mathrm{N} := \bar{b}.\mathrm{vassals}.[\mathrm{node\_id}] \cap \ddot{a}^2.[\mathrm{node\_id}] \neq \emptyset$$
+			$$\mathrm{N} := \bar{b}^1.\mathrm{vassals}.[\mathrm{node\_id}] \cap \ddot{a}^2.[\mathrm{node\_id}] \neq \emptyset$$
 
 			<p>where <span class="iml">$\bigtriangleup.[\odot]:=\bigtriangleup.\mathrm{map}(x\to x.\odot)$</span>.</p>
 			
