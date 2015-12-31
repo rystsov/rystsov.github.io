@@ -209,7 +209,7 @@ marker: hpw
 			
 			<p>Proposer should receive promises from a majority of the acceptors before it generates a $\ddot{b}^1$ event. It guarantees truth of the following expression:</p>
 
-			$$\mathrm{N} := \bar{b}^1.\mathrm{reads}.[\mathrm{node\_id}] \cap \ddot{a}^2.[\mathrm{node\_id}] \neq \emptyset$$
+			$$\mathrm{N} := \bar{b}^1.\mathrm{reads}.[\mathrm{node\_id}] \cap \bar{a}^2.\mathrm{writes}.[\mathrm{node\_id}] \neq \emptyset$$
 
 			<p>where <span class="iml">$\bigtriangleup.[\odot]:=\bigtriangleup.\mathrm{map}(x\to x.\odot)$</span>.</p>
 			
