@@ -159,7 +159,7 @@ marker: hpw
 		<div class="text">
 			<p>First we define <code>unwrap</code> function which maps a ballot number of the write to the ballot number of the previous write.</p>
 
-			$$\mathrm{unwrap}(\ddot{x}^2) := \bar{x}^1.\mathrm{vassals}.\mathrm{max}(x \to x.\mathrm{accepted\_n}).\mathrm{accepted\_n}$$
+			$$\mathrm{unwrap}(\ddot{x}^2) := \bar{x}^1.\mathrm{reads}.\mathrm{max}(x \to x.\mathrm{accepted\_n}).\mathrm{accepted\_n}$$
 
 			<p>We may think about <code>unwrap</code> as an inversion of the <code>change</code>, because</p>
 
@@ -209,7 +209,7 @@ marker: hpw
 			
 			<p>Proposer should receive promises from a majority of the acceptors before it generates a $\ddot{b}^1$ event. It guarantees truth of the following expression:</p>
 
-			$$\mathrm{N} := \bar{b}^1.\mathrm{vassals}.[\mathrm{node\_id}] \cap \ddot{a}^2.[\mathrm{node\_id}] \neq \emptyset$$
+			$$\mathrm{N} := \bar{b}^1.\mathrm{reads}.[\mathrm{node\_id}] \cap \ddot{a}^2.[\mathrm{node\_id}] \neq \emptyset$$
 
 			<p>where <span class="iml">$\bigtriangleup.[\odot]:=\bigtriangleup.\mathrm{map}(x\to x.\odot)$</span>.</p>
 			
@@ -223,9 +223,9 @@ marker: hpw
 
 			$$\dot{a}^2.\mathrm{accepted\_n} \;\leq\; \dot{b}^1.\mathrm{accepted\_n}$$
 
-			<p>By definition <span class="imb">$\dot{b}^1.\mathrm{accepted\_n} \in \bar{b}^1.\mathrm{vassals}.[\mathrm{accepted\_n}]$</span> so</p>
+			<p>By definition <span class="imb">$\dot{b}^1.\mathrm{accepted\_n} \in \bar{b}^1.\mathrm{reads}.[\mathrm{accepted\_n}]$</span> so</p>
 
-			$$\dot{b}^1.\mathrm{accepted\_n} \;\leq\; \bar{b}^1.\mathrm{vassals}.\mathrm{max}(x \to x.\mathrm{accepted\_n}).\mathrm{accepted\_n} \;=\; \mathrm{unwrap}(\ddot{b}^2)$$
+			$$\dot{b}^1.\mathrm{accepted\_n} \;\leq\; \bar{b}^1.\mathrm{reads}.\mathrm{max}(x \to x.\mathrm{accepted\_n}).\mathrm{accepted\_n} \;=\; \mathrm{unwrap}(\ddot{b}^2)$$
 
 			<p>And it's the final in proving the lemma since:</p>
 
