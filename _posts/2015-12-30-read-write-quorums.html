@@ -15,7 +15,7 @@ marker: read-write
 </div></div>
 
 <div class="brim"><div class="content">
-	<p class="edge">In the <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/vertical-paxos.pdf">Vertical Paxos</a> and <a class="link" href="http://courses.csail.mit.edu/6.852/01/papers/PaxosX40.pdf">The ABCD's of Paxos</a> papers it has been observed that Paxos can be generalized by utilizing different read and write quorums. This idea can be demonstrated with the Single Decree Paxos.</p>
+	<p class="edge">In the <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/vertical-paxos.pdf">Vertical Paxos</a> and <a class="link" href="http://courses.csail.mit.edu/6.852/01/papers/PaxosX40.pdf">The ABCD's of Paxos</a> papers it has been observed that Paxos can be generalized by utilizing different read and write quorums. This idea can be demonstrated with Single Decree Paxos.</p>
 
 	<h3>How Paxos works</h3>
 
@@ -37,7 +37,7 @@ marker: read-write
 
 	<img src="{{ site.url }}/images/rw-23.png" width="500"/>
 
-	<p>As you can see, we should achieve a quorum of the acceptor's responses twice. Let us call the first quorum as read quorum and the second as write quorum. In the original Paxos paper the size of those quorums is fixed and equal to n/2+1 (where n is the size of the cluster). It turns out that we can have other configurations of the read/write quorums if quorums overlap. For example if read quorum's size is 2 then write quorum's size should be at least 3.</p>
+	<p>As you can see, we should achieve a quorum of the acceptor's responses twice. Let us call the first quorum as read quorum and the second as write quorum. In the original Paxos paper the size of those quorums is fixed and equal to $n/2+1$ (where n is the size of the cluster). It turns out that we can have other configurations of the read/write quorums if quorums overlap. For example if read quorum's size is 2 then write quorum's size should be at least 3.</p>
 
 	<p>With this property the classic algorithm can be adjusted to:</p>
 
@@ -57,7 +57,7 @@ marker: read-write
 </div></div>
 
 <div class="brim"><div class="content">
-	<p>Some might think that this property is hard to prove but actually the proof that I used in the "How Paxos Works" remains the same. Since we don't use the size of read & write quorums and only require them to overlap:</p>
+	<p>Some might think that this property is hard to prove but actually the proof that I used in the "How Paxos Works" remains the same. Since we don't use the size of read &amp; write quorums and only require them to overlap:</p>
 
 	$$(\mathrm{N} := \bar{b}^1.\mathrm{reads}.[\mathrm{node\_id}] \cap \bar{a}^2.\mathrm{writes}.[\mathrm{node\_id}]) \neq \emptyset$$
 
