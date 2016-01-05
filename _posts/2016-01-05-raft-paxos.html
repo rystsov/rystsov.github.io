@@ -17,7 +17,7 @@ marker: raft-paxos
 <div class="brim"><div class="content">
 	<p class="edge">Paxos is a family of protocols to build CP-distributed data structures. The <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf">Paxos Made Simple</a> paper describes two members of that family: Single Decree Paxos for building write-once distributed registers and Multi Paxos for building distributed append-only logs.</p>
 
-	<p>The simplest member, Single Decree Paxos, seems impractical because "Paxos Made Simple" doesn't tell us how to change membership. Until we know it we can't replace failed nodes, and since failures happen&nbsp;&mdash;&nbsp;the system eventually becomes unavailable. In this post, I took Raft's idea of joint consensus to manage membership, adjusted it to Single Decree Paxos and proved it correctness.</p>
+	<p>The simplest member, Single Decree Paxos, seems impractical because "Paxos Made Simple" doesn't tell us how to change membership. Until we know it we can't replace failed nodes, and since failures happen&nbsp;&mdash;&nbsp;the system eventually becomes unavailable. <span class="b">In this post, I took Raft's idea of joint consensus to manage membership, adjusted it to Single Decree Paxos and proved it correctness.</span></p>
 
 	<img src="{{ site.url }}/images/paxosraft.jpg" width="600"/>
 
