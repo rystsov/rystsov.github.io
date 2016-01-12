@@ -15,17 +15,17 @@ marker: raft-paxos
 </div></div>
 
 <div class="brim"><div class="content">
-	<p class="edge">Paxos is a family of protocols to build CP-distributed data structures. The <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf">Paxos Made Simple</a> paper describes two members of that family: Single Decree Paxos for building write-once distributed registers and Multi Paxos for building distributed append-only logs.</p>
+	<p class="edge">Paxos is a family of protocols used to build CP-distributed data structures. The <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf">Paxos Made Simple</a> paper describes two members of that family: Single Decree Paxos for building write-once distributed registers and Multi Paxos for building distributed append-only logs.</p>
 
-	<p>The simplest member, Single Decree Paxos, seems impractical because "Paxos Made Simple" doesn't tell us how to change membership. Until we know it we can't replace failed nodes, and since failures happen&nbsp;&mdash;&nbsp;the system eventually becomes unavailable. <span class="b">In this post, I took Raft's idea of joint consensus to manage membership, adjusted it to Single Decree Paxos and proved it correctness.</span></p>
+	<p>The simplest member, Single Decree Paxos, seems impractical because "Paxos Made Simple" doesn't tell us how to change membership. Until we know it, we can't replace failed nodes, and since failures happen&nbsp;&mdash;&nbsp;the system eventually becomes unavailable. <span class="b">In this post, I took Raft's idea of joint consensus to manage membership, adjusted it to Single Decree Paxos and proved its correctness.</span></p>
 
 	<img src="{{ site.url }}/images/paxosraft.jpg" width="600"/>
 
-	<p>Someone might say that it isn't important because nobody wants to build systems on top of write-once distributed registers when they can use distributed logs. It's true, but <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">a little tweak</a> turns a write-once register into a variable.</p>
+	<p>One might say that it isn't important because nobody wants to build systems on top of write-once distributed registers when they can use distributed logs. It's true, but <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">a little tweak</a> turns a write-once register into a variable one.</p>
 
 	<p>Distributed variables may be more appealing to practitioners than distributed logs because variables are already powerful enough to be used in the real-world systems and they don't have log-related problems like log compaction.</p>
 
-	<p>For example, we may use an array of distributed variables as a distributed hashtable. Since the only API of many distributed storages is key/value API (hashtable) it proves that Single Decree Paxos is applicable to the problems which people solve with Raft&nbsp;and&nbsp;Multi-Paxos now.</p>
+	<p>For example, we may use an array of distributed variables as a distributed hashtable. Since the only API of many distributed storages is a key/value API (hashtable) it proves that Single Decree Paxos is applicable to the problems which people currently solve with Raft&nbsp;and&nbsp;Multi-Paxos.</p>
 
 	<p>Among the popular distributed key/value solutions are:</p>
 
@@ -41,9 +41,9 @@ marker: raft-paxos
 
 	<p>Yeah, I blogged about this problem and proposed a solution in the <a class="link" href="http://rystsov.info/2015/07/19/dynamic-plain-paxos.html">Dynamic Plain Paxos</a> post. It's correct, does the job but has reliability issues. If we define reliability as a number of nodes that may fail without affecting the system then the reliability goes from $f$ to $f-1$ and then back to $f$ when we use Dynamic Plain Paxos to change the size of the system from $2f+1$ to $2f+2$ nodes.</p>
 
-	<p>The Raft's joint consensus approach doesn't have this disadvantage and it's worth to backported it to Single Decree Paxos.</p>
+	<p>The Raft's joint consensus approach doesn't have this disadvantage and it's worth it to backport it to Single Decree Paxos.</p>
 
-	<h3>Ok, tell me details!</h3>
+	<h3>Ok, tell me the details!</h3>
 
 	<p>The algorithm is based on two principles.</p>
 </div></div>
@@ -51,84 +51,84 @@ marker: raft-paxos
 <div class="brim alt principles1"><div class="content">
 	<div class="principle edge">
 		<div class="title">Principle 1. Filter equivalence.</div>
-		<div>If a change in the behavior of the paxos cluster can be explained by delaying or omitting the messages between the nodes of the cluster then the change doesn't affect the consistency. The principle follows from the ability of paxos to tolerate interventions of such kind. <span class="it">It gives freedom to change the system as long as the change can be modeled as a filter on top of the unchanged system.</span></div>
+		<div>If a change in the behavior of the paxos cluster can be explained by delaying or omitting the messages between the nodes of the cluster, then the change doesn't affect consistency. The principle follows from the ability of paxos to tolerate interventions of such kind. <span class="it">It gives the freedom to change the system as long as the change can be modeled as a message filter on top of the unchanged system.</span></div>
 	</div>
 </div></div>
 
 <div class="brim alt principles1"><div class="content">
 	<div class="principle edge">
 		<div class="title">Principle 2. Reduced read quorums.</div>
-		<div>When proposer receives majority $f+1$ of the 'promises' it may choose to ignore one 'promise' and it doesn't affect the consistency if the size of the cluster is even. I wrote about it and proved it in the <a class="link" href="http://rystsov.info/2015/12/30/read-write-quorums.html">Read write quorums in Paxos</a> post.</div>
+		<div>When a proposer receives majority of $f+1$ of the 'promises' it may choose to ignore one 'promise'. It doesn't affect consistency if the size of the cluster is even. I wrote about it and proved it in the <a class="link" href="http://rystsov.info/2015/12/30/read-write-quorums.html">Read write quorums in Paxos</a> post.</div>
 	</div>
 </div></div>
 
 <div class="brim"><div class="content">
-	<p>Let's review <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a>, describe joint consensus, apply it to Single Decree Paxos and prove that the consistency of the system holds during the transition from $2f+1$ to $2f+2$ nodes cluster.</p>
+	<p>Let's review <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a>, describe joint consensus, apply it to Single Decree Paxos and prove that the consistency of the system holds during the transition from a $2f+1$ to a $2f+2$ node cluster.</p>
 
 	<h4>How Paxos works</h4>
 
-	<p>When a proposer receives a request from a client to change the distributed variable in the $2f+1$ nodes paxos cluster it should:</p>
+	<p>When a proposer receives a request from a client to change the distributed variable in the $2f+1$ node paxos cluster it should:</p>
 
 	<ol>
-		<li>Ask acceptors to provide the current value (send 'prepare' message).</li>
-		<li>Wait until majority of the acceptors answer (at least $f+1$ nodes).</li>
-		<li>Select the value with max ballot number.</li>
+		<li>Ask acceptors to provide the current value (send the 'prepare' message).</li>
+		<li>Wait until majority of the acceptors (at least $f+1$ nodes) answer.</li>
+		<li>Select the value with the maximum ballot number.</li>
 		<li>Perform a transformation of the value.</li>
 		<li>Send the new value back to the acceptors.</li>
-		<li>Wait until majority of the acceptors answer (at least $f+1$ nodes).</li>
+		<li>Wait until a majority of the acceptors (at least $f+1$ nodes) answer.</li>
 		<li>Send confirmation to the client.</li>
 	</ol>
 
-	<p>To read a value proposer should use the identity function as the transformation.</p>
+	<p>To read a value, a proposer should use the identity function as the transformation.</p>
 
 	<h4>Joint consensus</h4>
 
-	<p>The idea behind joint consensus is</p>
+	<p>The idea behind joint consensus is:</p>
 
 	<ol class="joint1">
-		<li>To start work with old $\mathfrak{O}$ and new $\mathfrak{N}$ set of acceptors simultaneously.</li>
-		<li class="comment">As a result the system works as $\mathfrak{O}$-correct and $\mathfrak{N}$-correct systems.</li>
+		<li>To start the work with the old $\mathfrak{O}$ and the new $\mathfrak{N}$ set of acceptors simultaneously.</li>
+		<li class="comment">As a result, the system works as $\mathfrak{O}$-correct and $\mathfrak{N}$-correct systems.</li>
 		<li>To perform a read to repair the number of replicas.</li>
-		<li class="comment">As a result the system is in $\mathfrak{N}$-reachable state.</li>
-		<li class="comment">Since it is in $\mathfrak{N}$-reachable state and works as a $\mathfrak{N}$-correct system then we can think of the system as the $\mathfrak{N}$ system.</li>
+		<li class="comment">As a result the system is in a $\mathfrak{N}$-reachable state.</li>
+		<li class="comment">Since it is in a $\mathfrak{N}$-reachable state and works as a $\mathfrak{N}$-correct system then we can think of the system as the $\mathfrak{N}$ system.</li>
 		<li>To turn off the $\mathfrak{O}$ configuration.</li>
 	</ol>
 
-	<p>After we got the general idea we can dive deep and take a look on the joint consensus inspired algorithm to change membership in paxos.</p>
+	<p>Now that we got the general idea, we can dive deeper and take a look at the joint consensus inspired algorithm to change membership in paxos.</p>
 
 	<h4>The algorithm</h4>
 
-	<p>Let's describe how to enlarge paxos cluster from $2f+1$ acceptors to $2f+2$ acceptors step by step. The $A_1, A_2 \cdots A_{2f+1}$ are the original acceptors and we want to add $A_{2f+2}$ acceptor to the cluster. To do it we:</p>
+	<p>Let's describe how to enlarge a paxos cluster from $2f+1$ acceptors to $2f+2$ acceptors step by step. The $A_1, A_2 \cdots A_{2f+1}$ are the original acceptors and we want to add a new $A_{2f+2}$ acceptor to the cluster. The steps to achieve this are:</p>
 
 	<ol class="roman alg1">
 		<li>Turn on $A_{2f+2}$ acceptor.</li>
 		<li>Connect to each proposer and switch it from the regular to the transient mode between $\mathfrak{O}$ ($A_1, A_2 \cdots A_{2f+1}$) and $\mathfrak{N}$ ($A_1, A_2 \cdots A_{2f+2}$):
 			<ol class="edge">
-				<li>Send propose message to the $\mathfrak{O} \cup \mathfrak{N}$ acceptors.</li>
-				<li>Wait until majority of $\mathfrak{O}$ answer (at least $f+1$ nodes).</li>
-				<li>Wait until majority of $\mathfrak{N}$ answer (at least $f+2$ nodes).</li>
-				<li>Use the reduced read quorums principle and omit the response from $A_{2f+2}$.</li>
-				<li>Select the value with max ballot number.</li>
+				<li>Send a propose message to the $\mathfrak{O} \cup \mathfrak{N}$ acceptors.</li>
+				<li>Wait until a majority of $\mathfrak{O}$ (at least $f+1$ nodes) answer.</li>
+				<li>Wait until a majority of $\mathfrak{N}$ (at least $f+2$ nodes) answer.</li>
+				<li>Use the reduced read quorums principle and filter out the response from $A_{2f+2}$.</li>
+				<li>Select the value with the maximum ballot number.</li>
 				<li>Perform a transformation of the value.</li>
 				<li>Send the new value back to the acceptors.</li>
-				<li>Wait until majority of $\mathfrak{O}$ answer.</li>
-				<li>Wait until majority of $\mathfrak{N}$ answer.</li>
-				<li>Send confirmation to the client.</li>
+				<li>Wait until a majority of $\mathfrak{O}$ answer.</li>
+				<li>Wait until a majority of $\mathfrak{N}$ answer.</li>
+				<li>Send a confirmation to the client.</li>
 			</ol>
 		</li>
-		<li class="it">Since the modification of the proposer behavior can be explain by a filter the filter equivalence principle guarantees that the system keeps working as a valid $\mathfrak{O}$ cluster.</li>
+		<li class="it">Since the modification of the proposer behavior can be explained by a filter, the filter equivalence principle guarantees that the system keeps working as a valid $\mathfrak{O}$ cluster.</li>
 		<li class="it">The reduced read quorums principle guarantees that the system works as a valid $\mathfrak{N}$ cluster</li>
-		<li>Connect to each acceptor, get list of the known keys up to this moment and perform read for each key.</li>
-		<li class="it">It converts the current state into $\mathfrak{N}$-reachable state via the read operation, so the consistency isn't impacted.</li>
+		<li>Connect to each acceptor, get the list of the known keys up to this moment and perform a read for each key.</li>
+		<li class="it">It converts the current state into a $\mathfrak{N}$-reachable state via the read operation, so consistency isn't impacted.</li>
 		<li>Connect to each proposer and switch it to the $\mathfrak{N}$-regular mode.</li>
-		<li class="it">If system is in $\mathfrak{N}$-reachable state and works as a $\mathfrak{N}$ system then it is $\mathfrak{N}$ system, so we can't affect it by switching it explicitly to that mode.</li>
+		<li class="it">If system is in a $\mathfrak{N}$-reachable state and works as a $\mathfrak{N}$ system then it is a $\mathfrak{N}$ system, so we can't affect it by switching it explicitly to that mode.</li>
 	</ol>
 
 	<div class="qed">Q.E.D.</div>
 
-	<p>The membership change from $2f$ to $2f+1$ is much simple. We think about the $2f$ node system as a $2f+1$ node system where all messages to the new node are omitted. So we just ask each proposer to switch itself to the new configuration. The filter equivalence principle guarantees the correctness.</p>
+	<p>The membership change from $2f$ to $2f+1$ is much simpler. We think about the $2f$ node system as a $2f+1$ node system where all the messages to the new node are filtered out. So we just ask each proposer to switch itself to the new configuration. The filter equivalence principle guarantees correctness.</p>
 
-	<p>To exclude a node from the cluster we should follow the same algorithms but in the reversed order.</p>
+	<p>To exclude a node from the cluster, we should follow the same algorithms but in the reversed order.</p>
 
-	<p>In case something goes wrong during the cluster extension we always can go back to the previous configuration or just pause the extension, fix the problem and resume it later. Since the extension doesn't affect reliability we don't have to finish it as fast as possible.</p>
+	<p>In case something goes wrong during the cluster extension, we can always go back to the previous configuration or just pause the extension, fix the problem and resume it later. Since the extension doesn't affect reliability we don't have to finish it as fast as possible.</p>
 </div></div>
