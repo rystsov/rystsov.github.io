@@ -86,12 +86,17 @@ marker: raft-paxos
 	<p>The idea behind joint consensus is:</p>
 
 	<ol class="joint1">
-		<li>To start the work with the old $\mathfrak{O}$ and the new $\mathfrak{N}$ set of acceptors simultaneously.</li>
-		<li class="comment">As a result, the system works as $\mathfrak{O}$-correct and $\mathfrak{N}$-correct systems.</li>
-		<li>To perform a read to repair the number of replicas.</li>
-		<li class="comment">As a result the system is in a $\mathfrak{N}$-reachable state.</li>
-		<li class="comment">Since it is in a $\mathfrak{N}$-reachable state and works as a $\mathfrak{N}$-correct system then we can think of the system as the $\mathfrak{N}$ system.</li>
-		<li>To turn off the $\mathfrak{O}$ configuration.</li>
+		<li>
+			To start the work with the old $\mathfrak{O}$ and the new $\mathfrak{N}$ set of acceptors simultaneously.
+			<div class="comment">As a result, the system works as $\mathfrak{O}$-correct and $\mathfrak{N}$-correct systems.</div>
+		</li>
+		<li>
+			To perform a read to repair the number of replicas.
+			<div class="comment">As a result the system is in a $\mathfrak{N}$-reachable state.Since it is in a $\mathfrak{N}$-reachable state and works as a $\mathfrak{N}$-correct system then we can think of the system as the $\mathfrak{N}$ system.</div>
+		</li>
+		<li>
+			To turn off the $\mathfrak{O}$ configuration.
+		</li>
 	</ol>
 
 	<p>Now that we got the general idea, we can dive deeper and take a look at the joint consensus inspired algorithm to change membership in paxos.</p>
@@ -115,13 +120,22 @@ marker: raft-paxos
 				<li>Wait until a majority of $\mathfrak{N}$ answer.</li>
 				<li>Send a confirmation to the client.</li>
 			</ol>
+
+			<div class="comment">Since the modification of the proposer behavior can be explained by a filter, the filter equivalence principle guarantees that the system keeps working as a valid $\mathfrak{O}$ cluster.</div>
+
+			<div class="comment">The reduced read quorums principle guarantees that the system works as a valid $\mathfrak{N}$ cluster</div>
 		</li>
-		<li class="it">Since the modification of the proposer behavior can be explained by a filter, the filter equivalence principle guarantees that the system keeps working as a valid $\mathfrak{O}$ cluster.</li>
-		<li class="it">The reduced read quorums principle guarantees that the system works as a valid $\mathfrak{N}$ cluster</li>
-		<li>Connect to each acceptor, get the list of the known keys up to this moment and perform a read for each key.</li>
-		<li class="it">It converts the current state into a $\mathfrak{N}$-reachable state via the read operation, so consistency isn't impacted.</li>
-		<li>Connect to each proposer and switch it to the $\mathfrak{N}$-regular mode.</li>
-		<li class="it">If system is in a $\mathfrak{N}$-reachable state and works as a $\mathfrak{N}$ system then it is a $\mathfrak{N}$ system, so we can't affect it by switching it explicitly to that mode.</li>
+		
+		<li>
+			Connect to each acceptor, get the list of the known keys up to this moment and perform a read for each key.
+
+			<div class="comment">It converts the current state into a $\mathfrak{N}$-reachable state via the read operation, so consistency isn't impacted.</div>
+		</li>
+		<li>
+			Connect to each proposer and switch it to the $\mathfrak{N}$-regular mode.
+
+			<div class="comment">If system is in a $\mathfrak{N}$-reachable state and works as a $\mathfrak{N}$ system then it is a $\mathfrak{N}$ system, so we can't affect it by switching it explicitly to that mode.</div>
+		</li>
 	</ol>
 
 	<div class="qed">Q.E.D.</div>
