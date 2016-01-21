@@ -100,6 +100,10 @@
     display: block;
 }
 
+.raft-paxos .brim .conf {
+    font-weight: bold;
+}
+
 .raft-paxos .b {
     font-weight: bold;
 }
