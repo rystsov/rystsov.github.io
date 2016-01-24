@@ -63,7 +63,7 @@ marker: raft-paxos
 </div></div>
 
 <div class="brim"><div class="content">
-	<p>Let's review <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a>, describe joint consensus, apply it to Single Decree Paxos and prove that the consistency of the system holds during the transition from a $2f+1$ to a $2f+2$ node cluster.</p>
+	<p>Let's review how Paxos works, describe joint consensus, apply it to Single Decree Paxos and prove that the consistency of the system holds during the transition from a $2f+1$ to a $2f+2$ node cluster.</p>
 
 	<h4>How Paxos works</h4>
 
@@ -81,18 +81,20 @@ marker: raft-paxos
 
 	<p>To read a value, a proposer should execute the same algorithm but keep the value untouched on the 4th step.</p>
 
+	<p>Please, see the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a> for details.</p>
+
 	<h4>Joint consensus</h4>
 
-	<p>The idea behind joint consensus is:</p>
+	<p>Joint consensus is a way of changing set of acceptors in the paxos cluster without affecting the linearizability. Suppose we want to make a transition from old set of acceptors <span class="conf">O</span> to the new one <span class="conf">N</span>. To make it we:</p>
 
 	<ol class="joint1">
 		<li>
-			To start the work with the old <span class="conf">O</span> and the new <span class="conf">N</span> set of acceptors simultaneously.
-			<div class="comment">As a result, the system works as <span class="conf">O</span>-correct and <span class="conf">N</span>-correct systems.</div>
+			Make proposers work and wait confirmation of the both set of acceptors simultaneously.
+			<div class="comment">The old set of acceptors guarantees linearizability, the new set of acceptors make the system behaves as <span class="conf">N</span>-acceptors paxos cluster for the future requests.</div>
 		</li>
 		<li>
-			To perform a read to repair the number of replicas.
-			<div class="comment">As a result the system is in a <span class="conf">N</span>-reachable state.Since it is in a <span class="conf">N</span>-reachable state and works as a <span class="conf">N</span>-correct system then we can think of the system as the <span class="conf">N</span> system.</div>
+			Read and write all previously written key/value pairs.
+			<div class="comment">After we do it all the current and future accepted key/value pairs will accepted by the system which behaves as <span class="conf">N</span>-acceptors paxos cluster. So the state of the system is equal to the some state of <span class="conf">N</span>-acceptors paxos cluster. Since the current system has the state and the behavior of the <span class="conf">N</span>-acceptors paxos cluster then linearizability is now guaranteed by the <span class="conf">N</span> set of acceptors too.</div>
 		</li>
 		<li>
 			To turn off the <span class="conf">O</span> configuration.
