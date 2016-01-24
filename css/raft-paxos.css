@@ -86,6 +86,7 @@
 
 .raft-paxos .brim .comment {
     font-style: italic;
+    color: #888888;
 }
 
 .raft-paxos .brim .alg1 li {
