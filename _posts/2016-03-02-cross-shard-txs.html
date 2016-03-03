@@ -10,11 +10,13 @@ marker: cross-shard
 ---
 
 <div id="cross-shard1" class="brim"><div class="content">
-	<h2>Visualization Serializable cross shard client-side transactions</h2>
+	<h2>Visualization of serializable cross shard client-side transactions</h2>
 </div></div>
 
 <div class="brim"><div class="content">
-	<p class="edge">In 2012 I wrote the <a class="link" href="http://rystsov.info/2012/09/01/cas.html">Transactions in MongoDB, Cassandra, Zookeeper and others</a> post where I described how to implement serializable multi-key client-side transactions for any key/value storage if it supports per-key linearizability and compare-and-set update operation.</p>
+	<p class="edge b">TL;DR <a class="link" href="http://rystsov.info/evil-scheduler/yabandeh.html">step-by-step visualization of serializable cross shard transactions</a></p>
+
+	<p>In 2012 I wrote the <a class="link" href="http://rystsov.info/2012/09/01/cas.html">Transactions in MongoDB, Cassandra, Zookeeper and others</a> post where I described how to implement serializable multi-key client-side transactions for any key/value storage if it supports per-key linearizability and compare-and-set update operation.</p>
 
 	<p>In the original post I focused on the distributed storages but the same algorithm can be applied to the traditional RDBMS like MySQL or PostgreSQL. You may wonder why to do it if they already support transactions.</p>
 
@@ -34,18 +36,18 @@ marker: cross-shard
 		<li>DynamoDB</li>
 		<li>MongoDB</li>
 	</ul>
-</div></div>
 
-<div class="brim"><div class="content">
-	<p class="edge">I wasn't the only one who noticed such approach. In 2013 <a class="link" href="https://twitter.com/jeffbarr">Jeff Barr</a> wrote <a class="link" href="https://aws.amazon.com/blogs/aws/dynamodb-transaction-library/">how to perform transactions over DynamoDB</a> and in 2015 the CockroachDB guys wrote how they apply the same approach for <a class="link" href="https://www.cockroachlabs.com/blog/how-cockroachdb-distributes-atomic-transactions/">transactions in CockroachDB</a>.</p>
+	<h3>Applications and history</h3>
+
+	<p>I wasn't the only one who noticed such approach. In 2013 <a class="link" href="https://twitter.com/jeffbarr">Jeff Barr</a> wrote <a class="link" href="https://aws.amazon.com/blogs/aws/dynamodb-transaction-library/">how to perform transactions over DynamoDB</a> and in 2015 the CockroachDB guys wrote how they apply the same approach for <a class="link" href="https://www.cockroachlabs.com/blog/how-cockroachdb-distributes-atomic-transactions/">transactions in CockroachDB</a>.</p>
 
 	<p>Obviously I also wasn't the first. Google wrote about the same idea in the <a class="link" href="http://research.google.com/pubs/pub36726.html">Large-scale Incremental Processing Using Distributed Transactions and Notifications</a> paper in 2010 and the CockroachDB folks told that they were inspired by the works of <a class="link" href="http://dblp.uni-trier.de/pers/hd/y/Yabandeh:Maysam">Maysam Yabandeh</a>.</p>
 
 	<p>I bet the algorithm is even older since it's a straightforward application of the lock-free ideas to database world.</p>
-</div></div>
 
-<div class="brim"><div class="content">
-	<p class="edge">Yet the idea is very simple it's still hard to explain it in a way that its correctness is obvious because it's unnatural to people to think about concurrent system.</p> 
+	<h3>Why it's hard to think about distributed systems</h3>
+
+	<p>Yet the idea is very simple it's still hard to explain it in a way that its correctness is obvious because it's unnatural to people to think about concurrent system.</p> 
 
 	<p>People demonstate a lot of fallacies when try to think about events and time (the essence of the distributed systems). Among them are:</p>
 
@@ -57,11 +59,13 @@ marker: cross-shard
 		<li><a class="link" href="https://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two">The Magical Number Seven, Plus or Minus Two</a></li>
 	</ul>
 
+	<h3>What can we do about it</h3>
+
 	<p>The natural inability to think about the concurrent systems is the reason why I was facinated by <a class="link" href="https://deadlockempire.github.io/">The Deadlock Empire</a> game. <it>I heard about it in the <a class="link" href="http://devzen.ru/">devzen.ru</a> podcast.</it> In this game you act on behalf of the scheduler and try to schedule the execution of the threads in order to archive the desired effects.</p>
 
 	<p>When you act on behalf of the scheduler you convert the concurrent system with time into the sequential system with causal relation. The latter is much simpler. I thougth that the same effect can be used to simplify the understanding of the distributed systems so I created <a class="link" href="http://rystsov.info/evil-scheduler/yabandeh.html">a visualization of the client side transactions</a> where you act as a scheduler and control the execution of the clients.</p>
-</div></div>
 
-<div class="brim"><div class="content">
-	<p class="edge">In the visualization you control the execution of the two clients. Both clients are trying transactionally swap the values. The first is going to swap the values corresponding to the "a" and "b" keys and the second are trying to swap the "b" and "c" keys. Since the keys are intercepting then there is a contention and depending on the scheduling the different outcomes are possible.</p>
+	<h3>The visualization</h3>
+
+	<p>In the visualization you control the execution of the two clients. Both clients are trying transactionally swap the values. The first is going to swap the values corresponding to the "a" and "b" keys and the second are trying to swap the "b" and "c" keys. Since the keys are intercepting then there is a contention and depending on the scheduling the different outcomes are possible.</p>
 </div></div>

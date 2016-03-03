@@ -19,6 +19,9 @@
     margin-bottom: 1.5em;
 }
 
+.raft-paxos .b {
+    font-weight: bold;
+}
 
 .cross-shard .brim {
     padding-left: 0.7em;
