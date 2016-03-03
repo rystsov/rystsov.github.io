@@ -18,7 +18,7 @@ marker: cross-shard
 
 	<p>In 2012 I wrote the <a class="link" href="http://rystsov.info/2012/09/01/cas.html">Transactions in MongoDB, Cassandra, Zookeeper and others</a> post where I described how to implement serializable multi-key client-side transactions for any key/value storage if it supports per-key linearizability and compare-and-set update operation.</p>
 
-	<p>In the original post I focused on the distributed storages but the same algorithm can be applied to the traditional RDBMS like MySQL or PostgreSQL. You may wonder why to do it if they already support transactions.</p>
+	<p>In the original post I focused on the distributed storages but the same algorithm can be applied to the traditional RDBMS like MySQL or PostgreSQL. You may wonder why somebody need to do it if a RDBMS already supports transactions.</p>
 
 	<p>In order to implement the client-side transactions we don't require the key/value pairs participating in the transaction to be aware about each other. It means that they can live on different nodes, so we can run a fistful of MySQL servers, shard the data between them and use the proposed solution to perform serializable cross shard transactions.</p>
 
