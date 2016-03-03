@@ -22,7 +22,7 @@ marker: cross-shard
 
 	<p>In order to implement the client-side transactions we don't require the key/value pairs participating in the transaction to be aware about each other. It means that they can live on different nodes, so we can run a fistful of MySQL servers, shard the data between them and use the proposed solution to perform serializable cross shard transactions.</p>
 
-	<p>You can think about the client side transactions as an another way of doing the <a class="link" href="http://dev.mysql.com/doc/refman/5.7/en/xa.html">XA transactions</a>. The interesting part that the vendor shouldn't support XA explicitly, so you can easily do cross MySQL cross PostgreSQL cross Redis transactions. It's hard to justify such polyglot persistence madness but it can be handy when you're migrating from one database engine to another.</p>
+	<p>You can think about the client side transactions as a replacement of the <a class="link" href="http://dev.mysql.com/doc/refman/5.7/en/xa.html">XA transactions</a>. The interesting part that the vendor shouldn't support XA explicitly, so you can easily do cross MySQL cross PostgreSQL cross Redis transactions. It's hard to justify such polyglot persistence madness but it can be handy when you're migrating from one database engine to another.</p>
 
 	<p>Alternatively we still can take the large distributed storage with CAS and per-key linearizability. The list of such systems increased since 2012 and now we can choose from:</p>
 
@@ -37,9 +37,11 @@ marker: cross-shard
 		<li>MongoDB</li>
 	</ul>
 
+	<img src="{{ site.url }}/images/yabandeh.jpg" width="700"/>
+
 	<h3>Applications and history</h3>
 
-	<p>I wasn't the only one who noticed such approach. In 2013 <a class="link" href="https://twitter.com/jeffbarr">Jeff Barr</a> wrote <a class="link" href="https://aws.amazon.com/blogs/aws/dynamodb-transaction-library/">how to perform transactions over DynamoDB</a> and in 2015 the CockroachDB guys wrote how they apply the same approach for <a class="link" href="https://www.cockroachlabs.com/blog/how-cockroachdb-distributes-atomic-transactions/">transactions in CockroachDB</a>.</p>
+	<p>I wasn't the only one who noticed such approach. In 2013 <a class="link" href="https://twitter.com/jeffbarr">Jeff Barr</a> wrote <a class="link" href="https://aws.amazon.com/blogs/aws/dynamodb-transaction-library/">how to perform transactions over DynamoDB</a> and in 2015 the CockroachDB guys wrote how they apply the same approach for the <a class="link" href="https://www.cockroachlabs.com/blog/how-cockroachdb-distributes-atomic-transactions/">transactions in CockroachDB</a>.</p>
 
 	<p>Obviously I also wasn't the first. Google wrote about the same idea in the <a class="link" href="http://research.google.com/pubs/pub36726.html">Large-scale Incremental Processing Using Distributed Transactions and Notifications</a> paper in 2010 and the CockroachDB folks told that they were inspired by the works of <a class="link" href="http://dblp.uni-trier.de/pers/hd/y/Yabandeh:Maysam">Maysam Yabandeh</a>.</p>
 
@@ -47,9 +49,9 @@ marker: cross-shard
 
 	<h3>Why it's hard to think about distributed systems</h3>
 
-	<p>Yet the idea is very simple it's still hard to explain it in a way that its correctness is obvious because it's unnatural to people to think about concurrent system.</p> 
+	<p>Yet the idea is very simple it's still hard to explain it in a way that its correctness is obvious because it's unnatural to people to think about concurrent systems.</p> 
 
-	<p>People demonstate a lot of fallacies when try to think about events and time (the essence of the distributed systems). Among them are:</p>
+	<p>People demonstate a lot of fallacies and limitations when the try to think about events and time (the essence of the distributed systems). Among them are:</p>
 
 	<ul>
 		<li><a class="link" href="https://en.wikipedia.org/wiki/Post_hoc_ergo_propter_hoc">Post hoc ergo propter hoc</a></li>
@@ -61,7 +63,7 @@ marker: cross-shard
 
 	<h3>What can we do about it</h3>
 
-	<p>The natural inability to think about the concurrent systems is the reason why I was facinated by <a class="link" href="https://deadlockempire.github.io/">The Deadlock Empire</a> game. <it>I heard about it in the <a class="link" href="http://devzen.ru/">devzen.ru</a> podcast.</it> In this game you act on behalf of the scheduler and try to schedule the execution of the threads in order to archive the desired effects.</p>
+	<p>The natural inability to think about the concurrent systems is the reason why I was facinated by <a class="link" href="https://deadlockempire.github.io/">The Deadlock Empire</a> game. <it>I heard about it in the <a class="link" href="http://devzen.ru/">devzen.ru</a> podcast.</it> In this game you act on behalf of the scheduler and try to schedule the execution of the threads in order to archive the desired state of the system.</p>
 
 	<p>When you act on behalf of the scheduler you convert the concurrent system with time into the sequential system with causal relation. The latter is much simpler. I thougth that the same effect can be used to simplify the understanding of the distributed systems so I created <a class="link" href="http://rystsov.info/evil-scheduler/yabandeh.html">a visualization of the client side transactions</a> where you act as a scheduler and control the execution of the clients.</p>
 
