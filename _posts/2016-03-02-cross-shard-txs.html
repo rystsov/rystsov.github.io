@@ -24,8 +24,8 @@ marker: cross-shard
 
 	<p>In order to implement the client-side transactions we don't require the key/value pairs participating in the transaction to be aware about each other. It means that they can live on different nodes, so we can run a fistful of MySQL servers, shard the data between them and use the proposed solution to perform serializable cross shard transactions.</p>
 
-	<p>You can think about the client side transactions as a replacement to the <a class="link" href="http://dev.mysql.com/doc/refman/5.7/en/xa.html">XA transactions</a>. The interesting part is that a vendor shouldn't support XA explicitly, so you can easily do cross MySQL cross PostgreSQL cross Redis transactions. It's hard to justify such polyglot persistence madness but it can be handy when you're migrating from one database engine to another.</p>
-
+	<p>You can think about the client side transactions as a replacement to the <a class="link" href="http://dev.mysql.com/doc/refman/5.7/en/xa.html">XA transactions</a>. The interesting part is that a vendor shouldn't support XA explicitly, so you can easily do cross MySQL cross PostgreSQL cross Redis transactions. <it>It's hard to justify such polyglot persistence madness but it can be handy when you're migrating from one database engine to another.</it></p>
+	
 	<p>Alternatively we still can take a large distributed storage supporting CAS and per-key linearizability. The list of such systems increased since 2012 and now we can choose from:</p>
 
 	<ul>
@@ -38,6 +38,12 @@ marker: cross-shard
 		<li>DynamoDB</li>
 		<li>MongoDB</li>
 	</ul>
+	
+	<h3>Use cases</h3>
+	
+	<p>There are three major use cases for the client side transactions. The first one is to use it within a single distributed 
+	or sharded key/value store to perform atomic multi-key updates. The second is to use transactions to migrate from one key/value
+	store to another without the downtime. The last major use case is to do resharding of sharded key/value store.</p>
 
 	<h3>Applications and history</h3>
 
