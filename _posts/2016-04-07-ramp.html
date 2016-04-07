@@ -1,0 +1,85 @@
+---
+layout: post
+title: "rystsov::RAMP transactions"
+name: "RAMP transaction"
+tags: ["pre_distr"]
+desc: "Non Blocking Read Committed distributed transactions"
+has_comments: true
+ignore_css: true
+marker: ramp
+---
+
+<div id="ramp1" class="brim"><div class="content">
+	<h2>Visualization of RAMP transaction</h2>
+</div></div>
+
+<div class="brim"><div class="content">
+	<p class="edge b">TL;DR <a class="link" href="http://rystsov.info/evil-scheduler/ramp.html">step-by-step visualization of RAMP transactions</a></p>
+
+	<table class="tx-props">
+		<tr>
+			<th>Paper</th>
+			<td><a class="link" href="http://www.bailis.org/papers/ramp-sigmod2014.pdf">Scalable Atomic Visibility with RAMP Transactions (2014)</a></td>
+		</tr>
+		<tr>
+			<th>Isolation level</th>
+			<td>Atomicity + Read Committed</td>
+		</tr>
+		<tr>
+			<th>Roundtrips per commit</th>
+			<td>2 (3 with latency improvements)</td>
+		</tr>
+	</table>
+
+	<h4>Usage in the wild</h4>
+
+	<p>The algorithm is new and hasn't been noticed in the wild but there there are <a class="link" href="https://issues.apache.org/jira/browse/CASSANDRA-7056">rumors</a> that Cassandra may support it. Also Facebook <a class="link" href="http://www.infoq.com/news/2014/06/facebook-apollo">reported</a> that they are working on the Apollo database which uses Paxos for replication and CRDT &amp; RAMP for cross shard transactions.</p>
+
+	<h3>Problem</h3>
+
+	<p>RAMP algorithm solves the problem of simultaneous (atomic) update of set of items distributed between multiple servers (shards).</p>
+
+	<h3>Overview</h3>
+
+	<h4>How to change a set of items</h4>
+	<ul>
+		<li>For each change of the item send it to shard owning the current version of the item along with the names of all items participating in the transaction (metadata).</li>
+		<li>For each change connect to the its shard and mark the change as committed (if id of the current transaction is greater than id of the previous change).</li>
+		<li class="extra-step">Connect to the shards and mark the commit as confirmed.</li>
+	</ul>
+
+	<h4>How to read a set of items</h4>
+	<ul>
+		<li>Read the current committed version of the items.</li>
+		<li class="extra-step">If there is a non-confirmed item:
+			<ul>
+				<li>(re)-commit the whole transaction which is responsible for the current item (we can do it since we store metadata within each item)</li>
+				<li>confirm the commit</li>
+			</ul>
+		</li>
+		<li>Use the metadata to calculate the expected version of the value</li>
+		<li>Fetch the expected version if it's greater than the committed version</li>
+	</ul>
+
+	<p>The <span class="extra-step">selected steps</span> are not described in the paper but they are necessary if we want to avoid a couple of anomalies. One of them happens when a client reads two items in a transaction, receives new version but then she starts new transaction, reads only one element and receives old version (stale read).</p>
+
+	<img width="700" src="{{ site.url }}/images/ramp-anomaly.png" />
+
+	<p>I believe those steps were omitted in the original paper because it was supposed that read transactions should always read the same set of items that were participating in the write transactions. In practice, the latter way has latency penalty because if the items are distributed between different shards and read transaction should always contact all of them.</p>
+
+	<h3>Example</h3>
+
+	<p>One of the hardest part of understanding RAMP transactions to me was to come up with an example of the domain where anomalies of the RAMP transactions (lost updates) are explainable and fine from the customer perspective.</p>
+
+	<p>The good example is an application like <a class="link" href="https://www.splitwise.com" rel="nofollow">Splitwise<a> which allows customers to split bills between friends and to track how much they own to each other. We can model the domain as a directed weighted graph where nodes represent customers, edges represent debts and distribute it by distributing the nodes with its outgoing edges. With such approach a customer can get a list of its debts by querying only one shard.</p>
+
+	<img width="700" src="{{ site.url }}/images/splitwise-model.png" />
+
+	<p>Of cause money is classical example where we need serializability, but our application is rather a reminder than bank, so we can relax the guaranties. For example, customers may understand that one of the simultaneous updates to the same data may be canceled, but they can't tolerate inconsistency between views of two customer on how much they own to each other. This is exactly the same guaranties which RAMP transactions provide.</p>
+
+	<p>In the <a class="link" href="rystsov.info/evil-scheduler/ramp.html">step-by-step RAMP visualization</a> I modeled a situation between customers who named just like some of the mathematicians I deeply admire: Evariste Galois, Euclid and Kurt Godel. They take a cab and go to a restaurant, Euclid pays for a ride, Godel handles the restaurant's check and at some point of time they decided to reflect this into the app.</p>
+
+	<h4>Postscriptum</h4>
+
+	<p>The <a class="link" href="http://rystsov.info/evil-scheduler/ramp.html">RAMP paper</a> described three flavors of RAMP transaction each with different runtime characteristics: RAMP-fast, RAMP-small and RAMP-hybrid. This post covers the first one, but the other are very similar, so if you got RAMP-fast I'm sure you'll get the other without problems.</p>
+</div></div>

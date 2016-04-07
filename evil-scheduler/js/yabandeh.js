@@ -6,7 +6,13 @@ module.exports = {
     Cond: Cond,
     Fun: Fun,
     Call: Call,
-    Return: Return
+    Return: Return,
+    Each: Each,
+    Nope: Nope,
+    Shift: Shift,
+    Skip: Skip,
+    Wormhole: Wormhole,
+    Marked: Marked
 };
 
 /////////////////////
@@ -15,30 +21,56 @@ function Step(pre, action, post) {
     return {
         isStep: true,
         pre: pre,
-        action: action,
         post: post,
+        get_action: function () {
+            return action;
+        },
         bind: function (g) {
             return Step(this.pre, function (ctx) {
-                var phase = this.action(ctx);
+                var phase = action(ctx);
                 return Phase(phase.step.bind(g), phase.ctx);
             }.bind(this), this.post);
         }
     };
 }
 
-function AsReturn(step) {
-    step.isReturn = true;
-    var old_bind = step.bind.bind(step);
-    step.bind = function (g) {
-        if (!g.isAccept) return this;
-        return old_bind(g);
+function Jump(action) {
+    return {
+        isJump: true,
+        get_action: function () {
+            return action;
+        },
+        bind: function (g) {
+            return Jump(function (ctx) {
+                var phase = action(ctx);
+                return Phase(phase.step.bind(g), phase.ctx);
+            });
+        }
     };
-    return step;
+}
+
+function AsReturn(step) {
+    return {
+        isReturn: true,
+        step: step,
+        bind: function (g) {
+            if (!g.isAccept) return this;
+            return step.bind(g.step);
+        }
+    };
 }
 
 function AsAccept(step) {
-    step.isAccept = true;
-    return step;
+    return {
+        isAccept: true,
+        step: step,
+        extract: function () {
+            return step;
+        },
+        bind: function (g) {
+            return AsAccept(step.bind(g));
+        }
+    };
 }
 
 function Unit() {
@@ -78,33 +110,103 @@ function unit(x) {
 
 /////////////////////
 
+function none() {}
+
 function marker(x) {
-    return function (thread_id) {
-        x.threads[thread_id] = true;
+    return function (thread) {
+        if (!x.marked.hasOwnProperty(thread.id)) {
+            x.marked[thread.thread_id] = {
+                thread: thread,
+                hits: []
+            };
+        }
+        x.marked[thread.thread_id].hits.push(thread.ts);
+        thread.trace[thread.ts] = x;
     };
 }
 
 function unmarker(x) {
-    return function (thread_id) {
-        x.threads[thread_id] = false;
+    return function (thread) {
+        var ts = x.marked[thread.thread_id].hits.pop();
+        if (x.marked[thread.thread_id].hits.length == 0) {
+            delete x.marked[thread.thread_id];
+        }
+        delete thread.trace[ts];
     };
 }
 
 /////////////////////
 
+function Wormhole() {
+    this.pres = [];
+    this.posts = [];
+    this.pre = function () {
+        this.pres.forEach(function (x) {
+            x();
+        });
+    };
+    this.post = function () {
+        this.posts.forEach(function (x) {
+            x();
+        });
+    };
+    this.reg = function (stmnt) {
+        var wh = this;
+        var step = stmnt.unit();
+        this.pres.push(step.pre);
+        this.posts.push(step.post);
+        step.unit = function () {
+            return Step(wh.pre.bind(wh), step.action, wh.post.bind(wh));
+        };
+        return step;
+    };
+}
+
 function Statement(view, action) {
     var self = {
         view: view,
         action: action,
-        threads: {},
+        marked: {},
         unit: function () {
             return Step(marker(self), function (ctx) {
-                self.action(ctx);
+                action(ctx);
                 return Phase(Unit(), ctx);
             }, unmarker(self));
         },
-        accept_writer: function (offset, writer) {
-            writer.write(self.threads, offset, self.view);
+        accept_writer: function (offset, writer, shift) {
+            writer.write(self.marked, offset, self.view);
+            return writer;
+        }
+    };
+    return self;
+}
+
+function Marked(label, body) {
+    var self = {
+        label: label,
+        unit: function () {
+            return body.unit();
+        },
+        accept_writer: function (offset, writer, shift) {
+            writer.begin_marked(label);
+            body.accept_writer(offset, writer, shift);
+            writer.end_marked();
+            return writer;
+        }
+    };
+    return self;
+}
+
+function Skip(action) {
+    var self = {
+        action: action,
+        unit: function () {
+            return Jump(function (ctx) {
+                action(ctx);
+                return Phase(Unit(), ctx);
+            });
+        },
+        accept_writer: function (offset, writer, shift) {
             return writer;
         }
     };
@@ -115,15 +217,15 @@ function Return(view, selector) {
     var self = {
         view: view,
         selector: selector,
-        threads: {},
+        marked: {},
         unit: function () {
             return AsReturn(Step(marker(self), function (ctx) {
                 ctx.__ret = self.selector(ctx);
                 return Phase(Unit(), ctx);
             }, unmarker(self)));
         },
-        accept_writer: function (offset, writer) {
-            writer.write(self.threads, offset, self.view);
+        accept_writer: function (offset, writer, shift) {
+            writer.write(self.marked, offset, self.view);
             return writer;
         }
     };
@@ -132,15 +234,15 @@ function Return(view, selector) {
 
 function Abort(view) {
     var self = {
-        threads: {},
+        marked: {},
         view: view,
         unit: function () {
             return Step(marker(self), function (ctx) {
                 return Phase(Zero(), ctx);
             }, unmarker(self));
         },
-        accept_writer: function (offset, writer) {
-            writer.write(self.threads, offset, view);
+        accept_writer: function (offset, writer, shift) {
+            writer.write(self.marked, offset, view);
             return writer;
         }
     };
@@ -153,9 +255,9 @@ function Seq(statements) {
         unit: function () {
             return self.statements.map(unit).reduce(bind, Unit());
         },
-        accept_writer: function (offset, writer) {
+        accept_writer: function (offset, writer, shift) {
             for (var i = 0; i < self.statements.length; i++) {
-                self.statements[i].accept_writer(offset, writer);
+                self.statements[i].accept_writer(offset, writer, shift);
             }
             return writer;
         }
@@ -169,7 +271,7 @@ function Cond(cond_view, predicate, body, alt) {
         predicate: predicate,
         body: body,
         alt: alt,
-        threads: {},
+        marked: {},
         unit: function () {
             return Step(marker(self), function (ctx) {
                 if (predicate(ctx)) {
@@ -183,12 +285,12 @@ function Cond(cond_view, predicate, body, alt) {
                 }
             }, unmarker(self));
         },
-        accept_writer: function (offset, writer) {
-            writer.write(self.threads, offset, "if (" + cond_view + ") {");
-            body.accept_writer(offset + 4, writer);
+        accept_writer: function (offset, writer, shift) {
+            writer.write(self.marked, offset, "if (" + cond_view + ") {");
+            body.accept_writer(offset + shift, writer, shift);
             if (alt) {
                 writer.write(false, offset, "} else {");
-                alt.accept_writer(offset + 4, writer);
+                alt.accept_writer(offset + shift, writer, shift);
                 writer.write(false, offset, "}");
             } else {
                 writer.write(false, offset, "}");
@@ -199,20 +301,74 @@ function Cond(cond_view, predicate, body, alt) {
     return self;
 }
 
-function Fun(signature, body) {
+function Fun(begin, body, end) {
     var self = {
-        signature: signature,
+        signature: begin,
         body: body,
+        end: end,
         unit: function () {
             return Unit();
         },
-        accept_writer: function (offset, writer) {
-            writer.write(false, offset, "function " + signature + " {");
-            body.accept_writer(offset + 4, writer);
-            writer.write(false, offset, "}");
+        accept_writer: function (offset, writer, shift) {
+            writer.write(false, offset, begin);
+            body.accept_writer(offset + shift, writer, shift);
+            writer.write(false, offset, end);
             return writer;
         }
     };
+    return self;
+}
+
+function Each(selector, pack, begin, body, end) {
+    var self = {
+        selector: selector,
+        pack: pack,
+        begin: begin,
+        body: body,
+        end: end,
+        marked: {},
+        unit: function () {
+            return Step(marker(self), function (ctx) {
+                var xs = selector(ctx);
+                var arr = [];
+                xs.forEach(function (x) {
+                    arr.push(x);
+                });
+                if (xs.length == 0) {
+                    return Phase(Unit(), ctx);
+                } else {
+                    var tail = Jump(function (ctx) {
+                        ctx.__thread.pop_frame();
+                        return Phase(Unit(), ctx);
+                    }).bind(Step(marker(self), function (ctx) {
+                        return Phase(Unit(), ctx.__seed);
+                    }, unmarker(self)));
+                    for (var i = xs.length - 1; i >= 0; i--) {
+                        tail = function (item) {
+                            var repack = Jump(function (ctx) {
+                                ctx.__thread.pop_frame();
+                                var packed = pack(item);
+                                packed.__thread = ctx.__thread;
+                                packed.__seed = ctx.__seed;
+                                ctx.__thread.push_frame();
+                                return Phase(Unit(), packed);
+                            });
+                            return repack.bind(body.unit()).bind(tail);
+                        }(xs[i]);
+                    }
+                    ctx.__thread.push_frame();
+                    return Phase(tail, { __seed: ctx, __thread: ctx.__thread });
+                }
+            }, unmarker(self));
+        },
+        accept_writer: function (offset, writer, shift) {
+            writer.write(self.marked, offset, begin);
+            body.accept_writer(offset + shift, writer, shift);
+            writer.write(self.marked, offset, end);
+            return writer;
+        }
+    };
+
     return self;
 }
 
@@ -222,24 +378,30 @@ function Call(view, pack, fun, unpack) {
         pack: pack,
         fun: fun,
         unpack: unpack,
-        threads: {},
+        marked: {},
         unit: function () {
-            return bind(Step(marker(self), function (ctx) {
+            var call = Step(marker(self), function (ctx) {
+                ctx.__thread.push_frame();
                 var sub = pack(ctx);
                 sub.__seed = ctx;
+                sub.__fun = fun;
+                sub.__thread = ctx.__thread;
                 return Phase(fun.body.unit(), sub);
-            }, unmarker(self)), AsAccept(Step(marker(self), function (ctx) {
-                if (!ctx.__seed) {
-                    throw "WTF?!";
-                }
+            }, none);
+            var accept = AsAccept(Jump(function (ctx) {
                 var seed = ctx.__seed;
                 var ret = ctx.__ret;
+                ctx.__thread.pop_frame();
                 unpack(seed, ret);
                 return Phase(Unit(), seed);
-            }, unmarker(self))));
+            }));
+            var pause = Step(none, function (ctx) {
+                return Phase(Unit(), ctx);
+            }, unmarker(self));
+            return call.bind(accept).bind(pause);
         },
-        accept_writer: function (offset, writer) {
-            writer.write(self.threads, offset, view);
+        accept_writer: function (offset, writer, shift) {
+            writer.write(self.marked, offset, view);
             return writer;
         }
     };
@@ -247,49 +409,146 @@ function Call(view, pack, fun, unpack) {
     return self;
 }
 
+function Nope(view) {
+    var self = {
+        view: view,
+        unit: function () {
+            return Unit();
+        },
+        accept_writer: function (offset, writer, shift) {
+            writer.write(false, offset, view);
+            return writer;
+        }
+    };
+    return self;
+}
+
+function Shift(body) {
+    var self = {
+        body: body,
+        unit: function () {
+            return Unit();
+        },
+        accept_writer: function (offset, writer, shift) {
+            body.accept_writer(offset + shift, writer, shift);
+            return writer;
+        }
+    };
+    return self;
+}
+
 },{}],2:[function(require,module,exports){
 module.exports = {
     ThreadModel: ThreadModel,
-    AppModel: AppModel
+    AppModel: AppModel,
+    HashVar: HashVar
 };
 
-function ThreadModel(entry_point, app_model, thread_id) {
-    var thread_model = {
+function HashVar(obj) {
+    this.obj = obj;
+}
+
+function ThreadModel(entry_point, app_model, thread_id, h, s) {
+    var self = {
         thread_id: thread_id,
         is_active: false,
         was_active: false,
         was_aborted: false,
         thread: entry_point,
+        color: { h: h, s: s },
+        ts: 0,
+        trace: {},
+        step: {},
+
+        push_frame: function () {
+            app_model.push_frame(self);
+        },
+        pop_frame: function () {
+            app_model.pop_frame(self);
+        },
+        frame_var: function (name, obj) {
+            app_model.frame_var(self, name, obj);
+        },
         init: function () {
-            thread_model.was_active = true;
-            thread_model.was_aborted = false;
-            thread_model.step = thread_model.thread.unit();
-            thread_model.ctx = {};
-            if (thread_model.step.isStep) {
-                thread_model.is_active = true;
-                thread_model.step.pre(thread_id);
+            self.was_active = true;
+            self.was_aborted = false;
+            self.step = self.thread.unit();
+            self.ctx = {
+                __thread: self
+            };
+
+            while (self.step.isJump || self.step.isAccept) {
+                while (self.step.isJump) {
+                    var phase = self.step.get_action()(self.ctx);
+                    self.ctx = phase.ctx;
+                    self.step = phase.step;
+                }
+                if (self.step.isAccept) {
+                    self.step = self.step.extract();
+                }
             }
-            app_model.notify();
+
+            if (self.step.isStep) {
+                self.ts += 1;
+                self.is_active = true;
+                self.step.pre(self);
+            }
+            app_model.ticked(self);
+        },
+        unselect: function () {
+            var trace = [];
+            for (var ts in self.trace) {
+                if (!self.trace.hasOwnProperty(ts)) {
+                    continue;
+                }
+                trace.push(ts);
+            }
+            trace.forEach(function (ts) {
+                delete self.trace[ts].marked[self.thread_id];
+                delete self.trace[ts];
+            });
+        },
+        abort: function () {
+            self.unselect();
+            self.was_aborted = true;
+            self.is_active = false;
+            self.ctx = {
+                __thread: self
+            };
+            app_model.clear_frames(self);
+            app_model.ticked(self);
         },
         iter: function () {
-            if (thread_model.step.isStep) {
-                var phase = thread_model.step.action(thread_model.ctx);
-                thread_model.step.post(thread_id);
-                thread_model.ctx = phase.ctx;
-                thread_model.step = phase.step;
-            }
-            if (thread_model.step.isStep) {
-                thread_model.step.pre(thread_id);
-            } else {
-                if (thread_model.step.isZero) {
-                    thread_model.was_aborted = true;
+            if (self.step.isStep) {
+                var phase = self.step.get_action()(self.ctx);
+                self.step.post(self);
+                self.ctx = phase.ctx;
+                self.step = phase.step;
+                while (self.step.isJump || self.step.isAccept) {
+                    while (self.step.isJump) {
+                        var phase = self.step.get_action()(self.ctx);
+                        self.ctx = phase.ctx;
+                        self.step = phase.step;
+                    }
+                    if (self.step.isAccept) {
+                        self.step = self.step.extract();
+                    }
                 }
-                thread_model.is_active = false;
             }
-            app_model.notify();
+            if (self.step.isStep) {
+                self.ts += 1;
+                self.step.pre(self);
+            } else {
+                if (self.step.isZero) {
+                    self.was_aborted = true;
+                }
+                self.is_active = false;
+                self.unselect();
+            }
+            app_model.ticked(self);
         }
     };
-    return thread_model;
+    return self;
 }
 
 function AppModel() {
@@ -305,54 +564,256 @@ function AppModel() {
 }
 
 },{}],3:[function(require,module,exports){
+module.exports = hl2;
+
+var TML = require("../stepbystep/view").TML;
+
+function hl2(text) {
+    return html(text.replace(/function ([^(]+)\(/g, "function <span class=\"fun-name\">$1</span>(").replace(/this.([^ ]+) = function/, "this.<span class=\"fun-name\">$1</span> = function").replace(/function/g, "<span class=\"function\">function</span>").replace(/([^a-z])(\d+)/g, "$1<span class=\"number\">$2</span>").replace(/return/g, "<span class=\"return\">return</span>").replace(/this/g, "<span class=\"this\">this</span>").replace(/var/g, "<span class=\"var\">var</span>"));
+}
+
+function html(text) {
+    return TML.html(text);
+}
+
+},{"../stepbystep/view":4}],4:[function(require,module,exports){
+var TML = {};
+TML.Click = function (x, f) {
+    return { is_click: true, text: x, f: f };
+};
+TML.html = function (text) {
+    return { is_html: true, text: text };
+};
+
+module.exports.TML = TML;
+
 module.exports.CodeView = React.createClass({
     displayName: "CodeView",
 
     renderCodeDOMRawHTML: function (codeDOM) {
-        var html = codeDOM.accept_writer(0, HtmlCodeWriter(this.props.threads_marker)).get();
-        return { __html: html };
+        var shift = 4;
+        if (this.props.shift) {
+            shift = this.props.shift;
+        }
+        return codeDOM.accept_writer(0, HtmlCodeWriter(), shift).get(this.props.width);
     },
     render: function () {
-        return React.createElement("div", {
-            className: "codeView",
-            dangerouslySetInnerHTML: this.renderCodeDOMRawHTML(this.props.dom) });
+        return React.createElement(
+            "div",
+            { className: "codeView" },
+            this.renderCodeDOMRawHTML(this.props.dom)
+        );
     }
 });
 
-function HtmlCodeWriter(threads_marker) {
+module.exports.buildShadesMap = buildShadesMap;
+
+function buildShadesMap(set) {
+    var tss = [];
+    var ts_pos = {};
+    for (var ts in set) {
+        if (!set.hasOwnProperty(ts)) {
+            continue;
+        }
+        if (!set[ts]) {
+            continue;
+        }
+        tss.push(parseInt(ts));
+    }
+    tss = tss.sort(function (x, y) {
+        return x - y;
+    });
+    for (var i = 0; i < tss.length; i++) {
+        ts_pos[tss[i]] = (1.0 + i) / tss.length;
+    }
+    return ts_pos;
+}
+
+function HtmlCodeWriter() {
     var self = {
-        lines: [],
-        write: function (threads, offset, line) {
-            var off = repeat(" ", offset);
-            var active = active_threads(threads);
-            if (active.length > 0) {
-                self.lines.push({
-                    is_current: true,
-                    class_name: threads_marker(active),
-                    line: off + line.replace(/\n/g, "\n" + off)
-                });
-            } else {
-                self.lines.push({
-                    is_current: false,
-                    line: off + line.replace(/\n/g, "\n" + off)
-                });
-            }
+        line_group: {
+            is_group: true,
+            label: null,
+            lines: [],
+            prev: null
         },
-        get: function () {
-            var text = "";
-            for (var i = 0; i < self.lines.length; i++) {
-                var isLast = i == self.lines.length - 1;
-                var line = self.lines[i];
-                var line_text = line.line + (isLast ? "" : "\n");
-                if (line.is_current) {
-                    text += "</pre><pre class=\"" + line.class_name + "\">";
-                    text += line_text;
-                    text += "</pre><pre>";
-                } else {
-                    text += line_text;
+        begin_marked: function (label) {
+            var prev = self.line_group;
+            self.line_group = {
+                is_group: true,
+                label: label,
+                lines: [],
+                prev: prev
+            };
+        },
+        end_marked: function () {
+            var curr = self.line_group;
+            self.line_group = curr.prev;
+            self.line_group.lines.push(curr);
+        },
+        write: function (marked, offset, line) {
+            var off = repeat(" ", offset);
+
+            var sink = [React.createElement(
+                "span",
+                null,
+                off
+            )];
+            fill_with_tml(line, sink, off);
+            line = sink;
+
+            var h = 0;
+            var s = 0;
+            var a = 0.0;
+            var c = 0;
+
+            for (var thread_id in marked) {
+                if (!marked.hasOwnProperty(thread_id)) {
+                    continue;
+                }
+                var thread = marked[thread_id].thread;
+                var ts_pos = buildShadesMap(thread.trace);
+                var hit = -1;
+                marked[thread_id].hits.forEach(function (x) {
+                    hit = Math.max(hit, x);
+                });
+                if (hit != -1) {
+                    h += thread.color.h;
+                    s += thread.color.s;
+                    a += ts_pos[hit];
+                    c += 1;
                 }
             }
-            return "<pre>" + text + "</pre>";
+
+            if (c > 0) {
+                self.line_group.lines.push({
+                    is_group: false,
+                    is_current: true,
+                    color: { h: Math.floor(h / c), s: Math.floor(s / c), a: a / c },
+                    text: line
+                });
+            } else {
+                self.line_group.lines.push({
+                    is_group: false,
+                    is_current: false,
+                    text: line
+                });
+            }
+
+            function fill_with_tml(element, sink, off) {
+                if (typeof element == "string") {
+                    sink.push(React.createElement(
+                        "span",
+                        null,
+                        element.replace(/\n/g, "\n" + off)
+                    ));
+                    return;
+                }
+                if (Array.isArray(element)) {
+                    element.forEach(function (item) {
+                        fill_with_tml(item, sink, off);
+                    });
+                    return;
+                }
+                if (typeof element == "object") {
+                    if (element.is_html) {
+                        sink.push(React.createElement("span", { dangerouslySetInnerHTML: {
+                                __html: element.text.replace(/\n/g, "\n" + off)
+                            } }));
+                        return;
+                    }
+                    if (element.is_click) {
+                        var subsink = [];
+                        fill_with_tml(element.text, subsink, off);
+                        sink.push(React.createElement(
+                            "span",
+                            { className: "code_link", onClick: element.f },
+                            subsink
+                        ));
+                        return;
+                    }
+                    throw "WTF?!";
+                }
+            }
+        },
+        get: function (width) {
+            if (self.line_group.label != null) {
+                throw "WTF?!";
+            }
+
+            var pres = [];
+            render_group(self.line_group, true, pres);
+            return React.createElement(
+                "div",
+                { className: "sourceCode" },
+                pres
+            );
+
+            function render_group(group, is_last_group, pres) {
+                var widthStyle = {};
+                if (width) {
+                    widthStyle.width = "" + width + "ch";
+                }
+
+                var text = [];
+                for (var i = 0; i < group.lines.length; i++) {
+                    var isLast = i == group.lines.length - 1;
+                    var line = group.lines[i];
+                    if (line.is_group) {
+                        pres.push(React.createElement(
+                            "pre",
+                            { style: widthStyle },
+                            text
+                        ));
+                        text = [];
+                        var sub = [];
+                        render_group(line, isLast && is_last_group, sub);
+                        pres.push(React.createElement(
+                            "div",
+                            { className: "sourceCode " + line.label },
+                            sub
+                        ));
+                    } else {
+                        if (line.is_current) {
+                            pres.push(React.createElement(
+                                "pre",
+                                { style: widthStyle },
+                                text
+                            ));
+                            var style = clone(widthStyle);
+                            style.backgroundColor = "hsla(" + line.color.h + "," + line.color.s + "%," + "40%," + line.color.a + ")";
+                            var lineView = [line.text];
+                            if (!(isLast && is_last_group)) {
+                                lineView.push(React.createElement(
+                                    "span",
+                                    null,
+                                    "\n"
+                                ));
+                            }
+                            pres.push(React.createElement(
+                                "pre",
+                                { style: style },
+                                lineView
+                            ));
+                            text = [];
+                        } else {
+                            text.push(line.text);
+                            if (!isLast) {
+                                text.push(React.createElement(
+                                    "span",
+                                    null,
+                                    "\n"
+                                ));
+                            }
+                        }
+                    }
+                }
+                pres.push(React.createElement(
+                    "pre",
+                    { style: widthStyle },
+                    text
+                ));
+            }
         }
     };
     return self;
@@ -376,12 +837,16 @@ function HtmlCodeWriter(threads_marker) {
     }
 }
 
-},{}],4:[function(require,module,exports){
+function clone(x) {
+    return JSON.parse(JSON.stringify(x));
+}
+
+},{}],5:[function(require,module,exports){
 var YabandehApp = require("./yabandeh/YabandehApp");
 
 ReactDOM.render(React.createElement(YabandehApp, null), document.getElementById('yabandeh-placeholder'));
 
-},{"./yabandeh/YabandehApp":9}],5:[function(require,module,exports){
+},{"./yabandeh/YabandehApp":10}],6:[function(require,module,exports){
 module.exports = {
     __storage: {},
     __txid: 0,
@@ -430,7 +895,7 @@ function deep_copy(object) {
     return JSON.parse(JSON.stringify(object));
 }
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 module.exports = React.createClass({
     displayName: "exports",
 
@@ -517,7 +982,7 @@ module.exports = React.createClass({
     }
 });
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = React.createClass({
     displayName: "exports",
 
@@ -610,82 +1075,77 @@ module.exports = React.createClass({
     }
 });
 
-},{}],8:[function(require,module,exports){
-module.exports = React.createClass({
-    displayName: "exports",
+},{}],9:[function(require,module,exports){
+var view = require("../stepbystep/view");
+var CodeView = view.CodeView;
+
+var ThreadControl = React.createClass({
+    displayName: "ThreadControl",
 
     nextHandler: function () {
         this.props.thread.iter();
+    },
+    abortHandler: function () {
+        this.props.thread.abort();
     },
     rerunHandler: function () {
         this.props.thread.init();
     },
     render: function () {
-        var button = null;
-        var text = "";
+        var controls = [];
+        var title = this.props.title;
         if (this.props.thread.is_active) {
-            button = React.createElement(
-                "button",
-                { onClick: this.nextHandler },
-                "Execute"
-            );
+            controls.push(React.createElement(
+                "span",
+                { className: "tv-btn" },
+                React.createElement(
+                    "button",
+                    { onClick: this.nextHandler },
+                    "Step"
+                )
+            ));
+            controls.push(React.createElement(
+                "span",
+                { className: "tv-btn" },
+                React.createElement(
+                    "button",
+                    { onClick: this.abortHandler },
+                    "Abort"
+                )
+            ));
         } else {
             if (this.props.thread.was_active) {
-                button = React.createElement(
-                    "button",
-                    { onClick: this.rerunHandler },
-                    "Restart"
-                );
-                if (this.props.thread.was_aborted) {
-                    text = "Aborted";
-                } else {
-                    text = "Executed";
-                }
+                controls.push(React.createElement(
+                    "span",
+                    { className: "tv-btn" },
+                    React.createElement(
+                        "button",
+                        { onClick: this.rerunHandler },
+                        "Restart"
+                    )
+                ));
+                controls.push(React.createElement(
+                    "span",
+                    { className: "tv-status" },
+                    this.props.thread.was_aborted ? "Aborted" : "Executed"
+                ));
             } else {
-                button = React.createElement(
-                    "button",
-                    { onClick: this.rerunHandler },
-                    "Start"
-                );
+                controls.push(React.createElement(
+                    "span",
+                    { className: "tv-btn" },
+                    React.createElement(
+                        "button",
+                        { onClick: this.rerunHandler },
+                        "Start"
+                    )
+                ));
             }
         }
-
         return React.createElement(
             "div",
-            { className: "threadControl" },
-            button,
-            React.createElement(
-                "span",
-                null,
-                text
-            )
-        );
-    }
-});
-
-},{}],9:[function(require,module,exports){
-var YabandehModel = require("./YabandehModel");
-var view = require("../stepbystep/view");
-var ThreadControl = require("./ThreadControl");
-
-var CodeView;
-var DBView = require("./DBView");
-var TXView = require("./TXView");
-
-var ThreadView = React.createClass({
-    displayName: "ThreadView",
-
-    render: function () {
-        return React.createElement(
-            "div",
-            { className: "info-block threadview" },
-            React.createElement(
-                "h3",
-                null,
-                this.props.title
-            ),
-            React.createElement(CodeView, { dom: this.props.thread.thread }),
-            React.createElement(ThreadControl, { thread: this.props.thread })
+            { className: "thread-control" },
+            title,
+            controls
         );
     }
 });
@@ -693,13 +1153,34 @@ var ThreadView = React.createClass({
 module.exports = React.createClass({
     displayName: "exports",
 
+    render: function () {
+        return React.createElement(
+            "div",
+            { className: "thread-view" },
+            React.createElement(ThreadControl, { title: this.props.title, thread: this.props.thread }),
+            React.createElement(CodeView, { dom: this.props.thread.thread })
+        );
+    }
+});
+
+},{"../stepbystep/view":4}],10:[function(require,module,exports){
+var YabandehModel = require("./YabandehModel");
+var view = require("../stepbystep/view");
+var ThreadView = require("./ThreadView");
+
+var CodeView = view.CodeView;
+var DBView = require("./DBView");
+var TXView = require("./TXView");
+
+module.exports = React.createClass({
+    displayName: "exports",
+
     getInitialState: function () {
-        var app_model = YabandehModel();
-        app_model.on_state_updated = function (app_model) {
+        YabandehModel.on_state_updated = function (app_model) {
             this.setState(app_model);
         }.bind(this);
 
-        return app_model;
+        return YabandehModel;
     },
 
     render: function () {
@@ -715,14 +1196,14 @@ module.exports = React.createClass({
                     React.createElement(
                         "td",
                         { className: "first-td" },
-                        React.createElement(CodeView, { dom: this.state.clean_read })
+                        React.createElement(CodeView, { shift: 2, dom: this.state.clean_read })
                     ),
                     React.createElement(
                         "td",
                         { className: "second-td" },
-                        React.createElement(CodeView, { dom: this.state.update }),
-                        React.createElement(CodeView, { dom: this.state.commit }),
-                        React.createElement(CodeView, { dom: this.state.clean })
+                        React.createElement(CodeView, { shift: 2, dom: this.state.update }),
+                        React.createElement(CodeView, { shift: 2, dom: this.state.commit }),
+                        React.createElement(CodeView, { shift: 2, dom: this.state.clean })
                     ),
                     React.createElement(
                         "td",
@@ -738,36 +1219,7 @@ module.exports = React.createClass({
     }
 });
 
-var CodeView = React.createClass({
-    displayName: "CodeView",
-
-    render: function () {
-        var CV = view.CodeView;
-        return React.createElement(CV, { dom: this.props.dom, threads_marker: threads_marker });
-    }
-});
-
-function threads_marker(threads) {
-    if (threads.length > 2) throw "WTF";
-    var known = {
-        "0": true,
-        "1": true
-    };
-    for (var i = 0; i < threads.length; i++) {
-        if (!known[threads[i]]) throw "WTF";
-    }
-    if (threads.length == 2) {
-        return "thread01";
-    }
-    if (threads.length == 1) {
-        return "thread" + threads[0];
-    }
-    return "nop";
-}
-
-},{"../stepbystep/view":3,"./DBView":6,"./TXView":7,"./ThreadControl":8,"./YabandehModel":10}],10:[function(require,module,exports){
-module.exports = YabandehModel;
-
+},{"../stepbystep/view":4,"./DBView":7,"./TXView":8,"./ThreadView":9,"./YabandehModel":11}],11:[function(require,module,exports){
 var dsl = require("../stepbystep/dsl");
 
 var Statement = dsl.Statement;
@@ -781,6 +1233,8 @@ var Return = dsl.Return;
 var model = require("../stepbystep/model");
 var AppModel = model.AppModel;
 var ThreadModel = model.ThreadModel;
+
+var hl2 = require("../stepbystep/monokai");
 
 var db = require("./DB");
 
@@ -802,116 +1256,122 @@ function equal(x, y) {
     }
 }
 
-var __clean_read = Fun("clean_read(key)", Seq([Statement("var obj = db.get(key);", function (ctx) {
+var __clean_read = Fun(hl2("function clean_read(key) {"), Seq([Statement(hl2("var obj = db.get(key);"), function (ctx) {
     ctx.obj = db.get(ctx.key);
 }), Cond("obj.tx_link != null", function (ctx) {
     return ctx.obj.tx_link != null;
-}, Seq([Statement("var status = null;", function (ctx) {
+}, Seq([Statement(hl2("var status = null;"), function (ctx) {
     ctx.status = null;
-}), Statement("var tx = db.get(obj.tx_link);", function (ctx) {
+}), Statement(hl2("var tx = db.get(obj.tx_link);"), function (ctx) {
     ctx.tx = db.get(ctx.obj.tx_link);
 }), Cond("tx.status==\"pending\"", function (ctx) {
     return ctx.tx.status == "pending";
-}, Seq([Statement("var aborted = {status: \"aborted\", ver: tx.ver+1};", function (ctx) {
+}, Seq([Statement(hl2("var aborted = {status: \"aborted\", ver: tx.ver+1};"), function (ctx) {
     ctx.aborted = { status: "aborted", ver: ctx.tx.ver + 1 };
 }), Cond("db.put_cas(obj.tx_link, aborted, {ver: tx.ver}", function (ctx) {
     return db.put_cas(ctx.obj.tx_link, ctx.aborted, { ver: ctx.tx.ver });
 }, Seq([Statement("status = \"aborted\";", function (ctx) {
     ctx.status = "aborted";
-})]), Seq([Statement("status = db.get(obj.tx_link).status;", function (ctx) {
+})]), Seq([Statement(hl2("status = db.get(obj.tx_link).status;"), function (ctx) {
     ctx.status = db.get(ctx.obj.tx_link).status;
-})]))]), Seq([Statement("status = tx.status;", function (ctx) {
+})]))]), Seq([Statement(hl2("status = tx.status;"), function (ctx) {
     ctx.status = ctx.tx.status;
 })])), Cond("status == \"aborted\"", function (ctx) {
     return ctx.status == "aborted";
-}, Seq([Statement("obj.future = null;", function (ctx) {
+}, Seq([Statement(hl2("obj.future = null;"), function (ctx) {
     ctx.obj.future = null;
-}), Statement("obj.tx_link = null;", function (ctx) {
+}), Statement(hl2("obj.tx_link = null;"), function (ctx) {
     ctx.obj.tx_link = null;
-}), Return("return obj;", function (ctx) {
+}), Return(hl2("return obj;"), function (ctx) {
     return ctx.obj;
 })])), Cond("status == \"committed\"", function (ctx) {
     return ctx.status == "committed";
-}, Seq([Statement("var clean = {\n    value: obj.future,\n    ver: obj.ver + 1,\n    tx_link: null\n};", function (ctx) {
+}, Seq([Statement(hl2("var clean = {\n  value: obj.future,\n  ver: obj.ver + 1,\n  tx_link: null\n};"), function (ctx) {
     ctx.clean = { value: ctx.obj.future, ver: ctx.obj.ver + 1, tx_link: null };
-}), Statement("var cond = function(x) {\n    return equal(x, clean) || x.ver==obj.ver;\n};", function (ctx) {
+}), Statement(hl2("var cond = function(x) {\n  return equal(x, clean) || x.ver==obj.ver;\n};"), function (ctx) {
     ctx.cond = function (x) {
         return equal(x, ctx.clean) || x.ver == ctx.obj.ver;
     };
 }), Cond("db.put_if(key, clean, cond)", function (ctx) {
     return db.put_if(ctx.key, ctx.clean, ctx.cond);
-}, Seq([Return("return clean;", function (ctx) {
+}, Seq([Return(hl2("return clean;"), function (ctx) {
     return ctx.clean;
-})]))])), Abort("throw \"exit\";")])), Return("return obj;", function (ctx) {
+})]))])), Abort(hl2("throw \"exit\";"))])), Return(hl2("return obj;"), function (ctx) {
     return ctx.obj;
-})]));
+})]), "}");
 
-var __update = Fun("update(tx_key, key, obj, value)", Seq([Statement("var updated = {\n" + "    value: obj.value,\n" + "    future: value,\n" + "    ver: obj.ver+1,\n" + "    tx_link: tx_key\n" + "};", function (ctx) {
+var __update = Fun(hl2("function update(tx_key, key, obj, value) {"), Seq([Statement(hl2("var updated = {\n" + "  value: obj.value,\n" + "  future: value,\n" + "  ver: obj.ver+1,\n" + "  tx_link: tx_key\n" + "};"), function (ctx) {
     ctx.updated = {
         value: ctx.obj.value,
         future: ctx.value,
         ver: ctx.obj.ver + 1,
         tx_link: ctx.tx_key
     };
-}), Cond("db.put_cas(\n" + "    key,\n" + "    updated,\n" + "    {ver: obj.ver}\n" + ")", function (ctx) {
+}), Cond("db.put_cas(\n" + "  key,\n" + "  updated,\n" + "  {ver: obj.ver}\n" + ")", function (ctx) {
     return db.put_cas(ctx.key, ctx.updated, { ver: ctx.obj.ver });
-}, Seq([Return("return updated;", function (ctx) {
+}, Seq([Return(hl2("return updated;"), function (ctx) {
     return ctx.updated;
-})])), Abort("throw \"exit\";")]));
+})])), Abort(hl2("throw \"exit\";"))]), "}");
 
-var __commit = Fun("commit(tx_key, tx)", Seq([Statement("var committed = {\n" + "    status: \"committed\",\n" + "    ver: tx.ver+1\n" + "};", function (ctx) {
+var __commit = Fun(hl2("function commit(tx_key, tx) {"), Seq([Statement(hl2("var committed = {\n" + "  status: \"committed\",\n" + "  ver: tx.ver+1\n" + "};"), function (ctx) {
     ctx.committed = { status: "committed", ver: ctx.tx.ver + 1 };
-}), Cond("!db.put_cas(\n" + "    tx_key,\n" + "    committed,\n" + "    {ver: tx.ver}\n" + ")", function (ctx) {
+}), Cond("!db.put_cas(\n" + "  tx_key,\n" + "  committed,\n" + "  {ver: tx.ver}\n" + ")", function (ctx) {
     return !db.put_cas(ctx.tx_key, ctx.committed, { ver: ctx.tx.ver });
-}, Seq([Abort("throw \"exit\";")]))]));
+}, Seq([Abort(hl2("throw \"exit\";"))]))]), "}");
 
-var __clean = Fun("clean(key, obj)", Seq([Statement("var tidy = {\n" + "    value: obj.future,\n" + "    ver: obj.ver+1,\n" + "    future: null,\n" + "    tx_link: null,\n" + "};", function (ctx) {
+var __clean = Fun(hl2("function clean(key, obj) {"), Seq([Statement(hl2("var tidy = {\n" + "  value: obj.future,\n" + "  ver: obj.ver+1,\n" + "  future: null,\n" + "  tx_link: null,\n" + "};"), function (ctx) {
     ctx.tidy = { value: ctx.obj.future, ver: ctx.obj.ver + 1, future: null, tx_link: null };
-}), Statement("db.put_cas(key, tidy, {ver: obj.ver});", function (ctx) {
+}), Statement(hl2("db.put_cas(key, tidy, {ver: obj.ver});"), function (ctx) {
     db.put_cas(ctx.key, ctx.tidy, { ver: ctx.obj.ver });
-})]));
+})]), "}");
 
 function get_swap_tx(tx, var1, var2) {
-    return Seq([Statement("var " + tx + " = db.new_tx();", function (ctx) {
+    return Seq([Statement(hl2("var " + tx + " = db.new_tx();"), function (ctx) {
         ctx[tx] = db.new_tx();
-    }), Call("var " + var1 + " = clean_read(\"" + var1 + "\");", function (ctx) {
+    }), Call(hl2("var " + var1 + " = clean_read(\"" + var1 + "\");"), function (ctx) {
         return { key: var1 };
     }, __clean_read, function (ctx, ret) {
         ctx[var1] = ret;
-    }), Call("var " + var2 + " = clean_read(\"" + var2 + "\");", function (ctx) {
+    }), Call(hl2("var " + var2 + " = clean_read(\"" + var2 + "\");"), function (ctx) {
         return { key: var2 };
     }, __clean_read, function (ctx, ret) {
         ctx[var2] = ret;
-    }), Call(var1 + " = update(" + tx + ".id, \"" + var1 + "\", " + var1 + ", " + var2 + ".value);", function (ctx) {
+    }), Call(hl2(var1 + " = update(" + tx + ".id, \"" + var1 + "\", " + var1 + ", " + var2 + ".value);"), function (ctx) {
         return { tx_key: ctx[tx].id, key: var1, obj: ctx[var1], value: ctx[var2].value };
     }, __update, function (ctx, ret) {
         ctx[var1] = ret;
-    }), Call(var2 + " = update(" + tx + ".id, \"" + var2 + "\", " + var2 + ", " + var1 + ".value);", function (ctx) {
+    }), Call(hl2(var2 + " = update(" + tx + ".id, \"" + var2 + "\", " + var2 + ", " + var1 + ".value);"), function (ctx) {
         return { tx_key: ctx[tx].id, key: var2, obj: ctx[var2], value: ctx[var1].value };
     }, __update, function (ctx, ret) {
         ctx[var2] = ret;
-    }), Call("commit(" + tx + ".id, " + tx + ");", function (ctx) {
+    }), Call(hl2("commit(" + tx + ".id, " + tx + ");"), function (ctx) {
         return { tx_key: ctx[tx].id, tx: ctx[tx] };
-    }, __commit, function (ctx, ret) {}), Call("clean(\"" + var1 + "\", " + var1 + ");", function (ctx) {
+    }, __commit, function (ctx, ret) {}), Call(hl2("clean(\"" + var1 + "\", " + var1 + ");"), function (ctx) {
         return { key: var1, obj: ctx[var1] };
-    }, __clean, function (ctx, ret) {}), Call("clean(\"" + var2 + "\", " + var2 + ");", function (ctx) {
+    }, __clean, function (ctx, ret) {}), Call(hl2("clean(\"" + var2 + "\", " + var2 + ");"), function (ctx) {
         return { key: var2, obj: ctx[var2] };
     }, __clean, function (ctx, ret) {})]);
 }
 
-__tx1 = get_swap_tx("tx1", "a", "b");
-__tx2 = get_swap_tx("tx2", "b", "c");
+var __tx1 = get_swap_tx("tx1", "a", "b");
+var __tx2 = get_swap_tx("tx2", "b", "c");
 
-function YabandehModel() {
-    var app_model = AppModel();
-    app_model.clean_read = __clean_read;
-    app_model.update = __update;
-    app_model.commit = __commit;
-    app_model.clean = __clean;
-    app_model.tx1 = ThreadModel(__tx1, app_model, "0");
-    app_model.tx2 = ThreadModel(__tx2, app_model, "1");
-    app_model.db = db;
-    return app_model;
-}
+var app_model = AppModel();
+app_model.all_source = Seq([__clean_read, __update, __commit, __clean]);
+app_model.clean_read = __clean_read;
+app_model.update = __update;
+app_model.commit = __commit;
+app_model.clean = __clean;
+app_model.tx1 = ThreadModel(__tx1, app_model, "0", 182, 25);
+app_model.tx2 = ThreadModel(__tx2, app_model, "1", 51, 100);
+app_model.db = db;
+app_model.ticked = function (thread) {
+    app_model.notify();
+};
+app_model.clear_frames = function (thread) {};
+app_model.push_frame = function (thread) {};
+app_model.pop_frame = function (thread) {};
+app_model.frame_var = function (thread, name, obj) {};
+module.exports = app_model;
 
-},{"../stepbystep/dsl":1,"../stepbystep/model":2,"./DB":5}]},{},[4]);
+},{"../stepbystep/dsl":1,"../stepbystep/model":2,"../stepbystep/monokai":3,"./DB":6}]},{},[5]);
