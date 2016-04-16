@@ -3,6 +3,8 @@
     <title>{{ page.title }}</title>
     <meta charset="UTF-8" />
 
+    {% feed_meta %}
+
     {% if page.ignore_css %}
         <link href="{{ site.url }}/css/reset.css" rel="stylesheet">
     {% endif %}
