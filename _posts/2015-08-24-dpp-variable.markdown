@@ -1,6 +1,6 @@
 ---
 layout: post
-title: rystsov::distributed variable and the dynamic environment
+title: Distributed variable and the dynamic environment
 name: Distributed variable and the dynamic environment
 tags: ["distr"]
 desc: "Updates distributed variable to work in the dynamic environment"

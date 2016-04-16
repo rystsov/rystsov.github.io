@@ -1,6 +1,6 @@
 ---
 layout: post
-title: rystsov::Transactions in MongoDB, Cassandra, Zookeeper and others
+title: Transactions in MongoDB, Cassandra, Zookeeper and others
 name: Transactions in MongoDB, Cassandra, Zookeeper and others
 desc: How to do multi-key optimistic transactions if the storage supports only per-key CAS
 tags: ["misc"]

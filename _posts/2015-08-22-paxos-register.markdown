@@ -1,6 +1,6 @@
 ---
 layout: post
-title: rystsov::Write-once distributed switch
+title: Write-once distributed switch
 name: Write-once distributed switch
 tags: ["distr"]
 desc: "Design of the write-once distributed switch"

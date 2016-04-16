@@ -1,0 +1,28 @@
+---
+layout: null
+---
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>http://rystsov.info/</id>
+  <title>Rystsov's programming blog</title>
+  <link href="http://rystsov.info/feed.xml" rel="self" type="application/atom+xml"/>
+  <link href="http://rystsov.info/" rel="alternate" type="text/html"/>
+  <updated>2016-04-16T18:30:00Z</updated>
+  <author>
+    <name>Denis Rystsov</name>
+    <uri>https://twitter.com/rystsov</uri>
+    <email>rystsov.denis@gmail.com</email>
+  </author>
+
+  {% for post in site.posts %}
+  {% unless post.ignore_rss %}
+  <entry>
+    <id>{{ site.url }}{{ post.url }}</id>
+    <title>{{ post.title | xml_escape }}</title>
+    <summary>{{ post.desc | xml_escape }}</summary>
+    <link href="{{ site.url }}{{ post.url }}" rel="alternate" type="text/html" title="{{ post.title | xml_escape }}"/>
+    <published>{{ post.date | date: "%a, %d %b %Y %H:%M:%S %z" }}</published>
+    <updated>{{ post.date | date: "%a, %d %b %Y %H:%M:%S %z" }}</updated>
+  </entry>
+  {% endunless %}
+  {% endfor %}
+</feed>

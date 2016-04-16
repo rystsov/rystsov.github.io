@@ -1,11 +1,12 @@
 ---
 layout: post
-title: rystsov::Warp9
+title: Warp9
 name: Warp9
 tags: ["pet"]
 desc: "A reactive js GUI library"
 abstract: "warp9-desc.html"
 has_comments: true
+ignore_rss: true
 ---
 
 <h1>Warp9</h1>

@@ -1,8 +1,9 @@
 ---
 layout: nidaba
-title: rystsov::Nidaba::Auction
+title: Nidaba::Auction
 name: "Penny auction is ripoff"
 tags: ["nidaba"]
+ignore_rss: true
 ---
 
 In the Nidaba whitepaper I suggested to use penny auction as an auction for a certificate's name.

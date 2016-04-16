@@ -1,6 +1,6 @@
 ---
 layout: post
-title: rystsov::Dynamic Plain Paxos
+title: Dynamic Plain Paxos
 name: Dynamic Plain Paxos
 tags: ["misc"]
 desc: "Dynamic Plain Paxos is an extension and a drop-in replacement for the classic Paxos algorithm that allows to change the membership during the reaching of consensus"
