@@ -1,6 +1,6 @@
 ---
 layout: nidaba
-title: rystsov::Nidaba::Auction
+title: Nidaba::Auction
 name: "Penny auction is ripoff"
 tags: ["nidaba"]
 ---

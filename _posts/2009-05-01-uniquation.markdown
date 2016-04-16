@@ -1,6 +1,6 @@
 ---
 layout: post
-title: rystsov::Uniquation
+title: Uniquation
 name: Uniquation
 tags: ["pet"]
 desc: "A math search engine"

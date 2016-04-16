@@ -1,6 +1,6 @@
 ---
 layout: post
-title: rystsov::Distributed variable
+title: Distributed variable
 name: Distributed variable
 tags: ["distr"]
 desc: "How to update the write-once distribted switch into a distributed variable with a compare-and-set (CAS) concurrency control mechanism"

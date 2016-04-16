@@ -1,6 +1,6 @@
 ---
 layout: post
-title: rystsov::Paxos-based sharded ordered key value store with CAS
+title: Paxos-based sharded ordered key value store with CAS
 name: Paxos-based sharded ordered key value store with CAS
 tags: ["distr"]
 desc: "How to run an instance of paxos variable per key to build a key value storage and how to shard it on the fly without loosing consistency"
