@@ -6,16 +6,16 @@
     <link type="application/atom+xml" rel="alternate" href="http://rystsov.info/feed.xml" title="Rystsov's programming blog">
 
     {% if page.ignore_css %}
-        <link href="{{ site.url }}/css/reset.css" rel="stylesheet">
+        <link href="/css/reset.css" rel="stylesheet">
     {% endif %}
 
     {% if page.marker %}
-        <link href="{{ site.url }}/css/base.css" rel="stylesheet">
-        <link href="{{ site.url }}/css/{{ page.marker }}.css" rel="stylesheet">
+        <link href="/css/base.css" rel="stylesheet">
+        <link href="/css/{{ page.marker }}.css" rel="stylesheet">
     {% endif %}
 
     {% unless page.ignore_css %}
-        <link href="{{ site.url }}/css/common.css" rel="stylesheet">
+        <link href="/css/common.css" rel="stylesheet">
         {% for css in page.extra_css %}
             <link href="{{ site.url }}/{{ css }}" rel="stylesheet">
         {% endfor %}
@@ -31,7 +31,7 @@
     {% endif %}
 
     {% if page.has_comments %}
-        <link href="{{ site.url }}/css/disqus.css" rel="stylesheet">
+        <link href="/css/disqus.css" rel="stylesheet">
     {% endif %}
 
     <script>
@@ -48,7 +48,7 @@
     <div class="{{ page.marker }}">{{ content }}</div>
     <div id="footer">
         <div id="contacts">
-            Denis Rystsov &#8212; <a href="{{ site.url }}/files/rystsov.pdf">resume</a><br/>
+            Denis Rystsov &#8212; <a href="/files/rystsov.pdf">resume</a><br/>
             <a href="https://twitter.com/rystsov">@rystsov</a><br/>
             <a href="https://github.com/rystsov">GitHub Account</a><br/>
             <a href="mailto:rystsov.denis@gmail.com">rystsov.denis@gmail.com</a>
