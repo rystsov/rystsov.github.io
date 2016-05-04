@@ -5,6 +5,7 @@ name: Yet another post about CAP theorem and the ways to ignore it
 tags: ["pre_distr"]
 desc: "CAP theorem is much flexible than most people think and it's possible to build a system that satisfies business requirements without violating the theorem"
 has_comments: true
+private: true
 ---
 
 <h1>Yet another post about CAP theorem and the ways to ignore it</h1>

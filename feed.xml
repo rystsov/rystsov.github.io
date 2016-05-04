@@ -14,7 +14,7 @@ layout: null
   </author>
 
   {% for post in site.posts %}
-  {% unless post.ignore_rss %}
+  {% unless post.ignore_rss or post.private %}
   <entry>
     <id>{{ site.url }}{{ post.url }}</id>
     <title>{{ post.title | xml_escape }}</title>
