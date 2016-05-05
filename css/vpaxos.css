@@ -93,11 +93,14 @@
     background-color: rgba(96, 255, 0, 0.26);
 }
 
-
 .vpaxos .brim ul {
     margin-top: 0.5em;
     padding-left: 40px;
     list-style-type: square;
+}
+
+.vpaxos .brim ul ul {
+    margin-top: 0;
 }
 
 .vpaxos .brim li {
