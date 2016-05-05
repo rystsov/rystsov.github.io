@@ -1,8 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-"use strict";
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
 module.exports = {
     Statement: Statement,
     Abort: Abort,
@@ -10,25 +6,14 @@ module.exports = {
     Cond: Cond,
     Fun: Fun,
     Call: Call,
-    Call2: Call2,
     Return: Return,
     Each: Each,
     Nope: Nope,
     Shift: Shift,
     Skip: Skip,
-    Defer: Defer,
-    While: While,
     Wormhole: Wormhole,
-    Marked: Marked,
-    TryCatch: TryCatch,
-    Throw: ThrowAst,
-    flow: {
-        Throw: Throw,
-        Unit: Unit
-    }
+    Marked: Marked
 };
-
-var hl2 = require("./monokai");
 
 /////////////////////
 
@@ -37,10 +22,10 @@ function Step(pre, action, post) {
         isStep: true,
         pre: pre,
         post: post,
-        get_action: function get_action() {
+        get_action: function () {
             return action;
         },
-        bind: function bind(g) {
+        bind: function (g) {
             return Step(this.pre, function (ctx) {
                 var phase = action(ctx);
                 return Phase(phase.step.bind(g), phase.ctx);
@@ -52,10 +37,10 @@ function Step(pre, action, post) {
 function Jump(action) {
     return {
         isJump: true,
-        get_action: function get_action() {
+        get_action: function () {
             return action;
         },
-        bind: function bind(g) {
+        bind: function (g) {
             return Jump(function (ctx) {
                 var phase = action(ctx);
                 return Phase(phase.step.bind(g), phase.ctx);
@@ -64,40 +49,11 @@ function Jump(action) {
     };
 }
 
-function Throw(obj) {
-    return {
-        isThrow: true,
-        obj: obj,
-        bind: function bind(g) {
-            if (g.isCatch) {
-                return g.caught(this.obj).bind(g.tail);
-            } else {
-                return this;
-            }
-        }
-    };
-}
-
-function Catch(caught, tail) {
-    return {
-        isCatch: true,
-        caught: caught,
-        tail: tail,
-        extract: function extract() {
-            return tail;
-        },
-        bind: function bind(g) {
-            return Catch(caught, this.tail.bind(g));
-        }
-    };
-}
-
-// TODO: implement via try/catch
 function AsReturn(step) {
     return {
         isReturn: true,
         step: step,
-        bind: function bind(g) {
+        bind: function (g) {
             if (!g.isAccept) return this;
             return step.bind(g.step);
         }
@@ -108,10 +64,10 @@ function AsAccept(step) {
     return {
         isAccept: true,
         step: step,
-        extract: function extract() {
+        extract: function () {
             return step;
         },
-        bind: function bind(g) {
+        bind: function (g) {
             return AsAccept(step.bind(g));
         }
     };
@@ -120,7 +76,7 @@ function AsAccept(step) {
 function Unit() {
     return {
         isUnit: true,
-        bind: function bind(g) {
+        bind: function (g) {
             return g;
         }
     };
@@ -129,7 +85,7 @@ function Unit() {
 function Zero() {
     return {
         isZero: true,
-        bind: function bind(g) {
+        bind: function (g) {
             return this;
         }
     };
@@ -148,7 +104,7 @@ function bind(f, g) {
     return f.bind(g);
 }
 
-function _unit(x) {
+function unit(x) {
     return x.unit();
 }
 
@@ -181,9 +137,6 @@ function unmarker(x) {
 
 /////////////////////
 
-// Move to ast.*
-
-// TODO: remove
 function Wormhole() {
     this.pres = [];
     this.posts = [];
@@ -214,13 +167,13 @@ function Statement(view, action) {
         view: view,
         action: action,
         marked: {},
-        unit: function unit() {
+        unit: function () {
             return Step(marker(self), function (ctx) {
                 action(ctx);
                 return Phase(Unit(), ctx);
             }, unmarker(self));
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
+        accept_writer: function (offset, writer, shift) {
             writer.write(self.marked, offset, self.view);
             return writer;
         }
@@ -231,10 +184,10 @@ function Statement(view, action) {
 function Marked(label, body) {
     var self = {
         label: label,
-        unit: function unit() {
+        unit: function () {
             return body.unit();
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
+        accept_writer: function (offset, writer, shift) {
             writer.begin_marked(label);
             body.accept_writer(offset, writer, shift);
             writer.end_marked();
@@ -247,70 +200,13 @@ function Marked(label, body) {
 function Skip(action) {
     var self = {
         action: action,
-        unit: function unit() {
+        unit: function () {
             return Jump(function (ctx) {
                 action(ctx);
                 return Phase(Unit(), ctx);
             });
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
-            return writer;
-        }
-    };
-    return self;
-}
-
-function Defer(action) {
-    var self = {
-        action: action,
-        unit: function unit() {
-            return Jump(function (ctx) {
-                var _action = action(ctx);
-
-                var _action2 = _slicedToArray(_action, 2);
-
-                var step = _action2[0];
-                var state = _action2[1];
-
-                return Phase(step, state);
-            });
-        },
-        accept_writer: function accept_writer(offset, writer, shift) {
-            return writer;
-        }
-    };
-    return self;
-}
-
-function TryCatch(try_view, expression, catch_view, pack, handler, end) {
-    var self = {
-        try_view: try_view,
-        expression: expression,
-        catch_view: catch_view,
-        pack: pack,
-        handler: handler,
-        end: end,
-        marked: {},
-        unit: function unit() {
-            var call = Step(marker(self), function (ctx) {
-                return Phase(expression.unit(), ctx);
-            }, unmarker(self));
-
-            var catcher = Catch(function (obj) {
-                return Jump(function (ctx) {
-                    pack(ctx, obj);
-                    return Phase(self.handler.unit(), ctx);
-                });
-            }, Unit());
-
-            return call.bind(catcher);
-        },
-        accept_writer: function accept_writer(offset, writer, shift) {
-            writer.write(self.marked, offset, try_view);
-            self.expression.accept_writer(offset + shift, writer, shift);
-            writer.write(self.marked, offset, catch_view);
-            self.handler.accept_writer(offset + shift, writer, shift);
-            writer.write(self.marked, offset, end);
+        accept_writer: function (offset, writer, shift) {
             return writer;
         }
     };
@@ -322,13 +218,13 @@ function Return(view, selector) {
         view: view,
         selector: selector,
         marked: {},
-        unit: function unit() {
+        unit: function () {
             return AsReturn(Step(marker(self), function (ctx) {
                 ctx.__ret = self.selector(ctx);
                 return Phase(Unit(), ctx);
             }, unmarker(self)));
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
+        accept_writer: function (offset, writer, shift) {
             writer.write(self.marked, offset, self.view);
             return writer;
         }
@@ -336,36 +232,16 @@ function Return(view, selector) {
     return self;
 }
 
-function ThrowAst(view, selector) {
-    var self = {
-        view: view,
-        selector: selector,
-        marked: {},
-        unit: function unit() {
-            return Step(marker(self), function (ctx) {
-                var obj = selector(ctx);
-                return Phase(Throw(obj), ctx);
-            }, unmarker(self));
-        },
-        accept_writer: function accept_writer(offset, writer, shift) {
-            writer.write(self.marked, offset, self.view);
-            return writer;
-        }
-    };
-    return self;
-}
-
-// TODO: remove in favor of Throw
 function Abort(view) {
     var self = {
         marked: {},
         view: view,
-        unit: function unit() {
+        unit: function () {
             return Step(marker(self), function (ctx) {
                 return Phase(Zero(), ctx);
             }, unmarker(self));
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
+        accept_writer: function (offset, writer, shift) {
             writer.write(self.marked, offset, view);
             return writer;
         }
@@ -376,10 +252,10 @@ function Abort(view) {
 function Seq(statements) {
     var self = {
         statements: statements,
-        unit: function unit() {
-            return self.statements.map(_unit).reduce(bind, Unit());
+        unit: function () {
+            return self.statements.map(unit).reduce(bind, Unit());
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
+        accept_writer: function (offset, writer, shift) {
             for (var i = 0; i < self.statements.length; i++) {
                 self.statements[i].accept_writer(offset, writer, shift);
             }
@@ -396,7 +272,7 @@ function Cond(cond_view, predicate, body, alt) {
         body: body,
         alt: alt,
         marked: {},
-        unit: function unit() {
+        unit: function () {
             return Step(marker(self), function (ctx) {
                 if (predicate(ctx)) {
                     return Phase(body.unit(), ctx);
@@ -409,11 +285,11 @@ function Cond(cond_view, predicate, body, alt) {
                 }
             }, unmarker(self));
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
-            writer.write(self.marked, offset, hl2("if (" + cond_view + ") {"));
+        accept_writer: function (offset, writer, shift) {
+            writer.write(self.marked, offset, "if (" + cond_view + ") {");
             body.accept_writer(offset + shift, writer, shift);
             if (alt) {
-                writer.write(false, offset, hl2("} else {"));
+                writer.write(false, offset, "} else {");
                 alt.accept_writer(offset + shift, writer, shift);
                 writer.write(false, offset, "}");
             } else {
@@ -430,35 +306,14 @@ function Fun(begin, body, end) {
         signature: begin,
         body: body,
         end: end,
-        unit: function unit() {
+        unit: function () {
             return Unit();
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
+        accept_writer: function (offset, writer, shift) {
             writer.write(false, offset, begin);
             body.accept_writer(offset + shift, writer, shift);
             writer.write(false, offset, end);
             return writer;
-        }
-    };
-    return self;
-}
-
-function While(view_begin, pred, body, view_end) {
-    var self = {
-        marked: {},
-        unit: function unit() {
-            return Step(marker(self), function (ctx) {
-                if (pred(ctx)) {
-                    return Phase(body.unit().bind(self.unit()), ctx);
-                } else {
-                    return Phase(Unit(), ctx);
-                }
-            }, unmarker(self));
-        },
-        accept_writer: function accept_writer(offset, writer, shift) {
-            writer.write(self.marked, offset, view_begin);
-            body.accept_writer(offset + shift, writer, shift);
-            writer.write(self.marked, offset, view_end);
         }
     };
     return self;
@@ -472,7 +327,7 @@ function Each(selector, pack, begin, body, end) {
         body: body,
         end: end,
         marked: {},
-        unit: function unit() {
+        unit: function () {
             return Step(marker(self), function (ctx) {
                 var xs = selector(ctx);
                 var arr = [];
@@ -506,7 +361,7 @@ function Each(selector, pack, begin, body, end) {
                 }
             }, unmarker(self));
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
+        accept_writer: function (offset, writer, shift) {
             writer.write(self.marked, offset, begin);
             body.accept_writer(offset + shift, writer, shift);
             writer.write(self.marked, offset, end);
@@ -517,7 +372,6 @@ function Each(selector, pack, begin, body, end) {
     return self;
 }
 
-// TODO: replace with Call2
 function Call(view, pack, fun, unpack) {
     var self = {
         view: view,
@@ -525,7 +379,7 @@ function Call(view, pack, fun, unpack) {
         fun: fun,
         unpack: unpack,
         marked: {},
-        unit: function unit() {
+        unit: function () {
             var call = Step(marker(self), function (ctx) {
                 ctx.__thread.push_frame();
                 var sub = pack(ctx);
@@ -544,60 +398,9 @@ function Call(view, pack, fun, unpack) {
             var pause = Step(none, function (ctx) {
                 return Phase(Unit(), ctx);
             }, unmarker(self));
-            var catcher = Catch(function (obj) {
-                return Jump(function (ctx) {
-                    unmarker(self)(ctx.__thread);
-                    ctx.__thread.pop_frame();
-                    return Phase(Throw(obj), ctx.__seed);
-                });
-            }, Unit());
-            return call.bind(accept).bind(pause).bind(catcher);
+            return call.bind(accept).bind(pause);
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
-            writer.write(self.marked, offset, view);
-            return writer;
-        }
-    };
-    return self;
-}
-
-function Call2(view, pack, fun, unpack) {
-    var self = {
-        view: view,
-        pack: pack,
-        fun: fun,
-        unpack: unpack,
-        marked: {},
-        unit: function unit() {
-            var call = Step(marker(self), function (ctx) {
-                var fun = self.fun(ctx);
-                ctx.__thread.push_frame();
-                var sub = pack(ctx);
-                sub.__seed = ctx;
-                sub.__fun = fun;
-                sub.__thread = ctx.__thread;
-                return Phase(fun.body.unit(), sub);
-            }, none);
-            var accept = AsAccept(Jump(function (ctx) {
-                var seed = ctx.__seed;
-                var ret = ctx.__ret;
-                ctx.__thread.pop_frame();
-                unpack(seed, ret);
-                return Phase(Unit(), seed);
-            }));
-            var pause = Step(none, function (ctx) {
-                return Phase(Unit(), ctx);
-            }, unmarker(self));
-            var catcher = Catch(function (obj) {
-                return Jump(function (ctx) {
-                    unmarker(self)(ctx.__thread);
-                    ctx.__thread.pop_frame();
-                    return Phase(Throw(obj), ctx.__seed);
-                });
-            }, Unit());
-            return call.bind(accept).bind(pause).bind(catcher);
-        },
-        accept_writer: function accept_writer(offset, writer, shift) {
+        accept_writer: function (offset, writer, shift) {
             writer.write(self.marked, offset, view);
             return writer;
         }
@@ -609,10 +412,10 @@ function Call2(view, pack, fun, unpack) {
 function Nope(view) {
     var self = {
         view: view,
-        unit: function unit() {
+        unit: function () {
             return Unit();
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
+        accept_writer: function (offset, writer, shift) {
             writer.write(false, offset, view);
             return writer;
         }
@@ -623,10 +426,10 @@ function Nope(view) {
 function Shift(body) {
     var self = {
         body: body,
-        unit: function unit() {
+        unit: function () {
             return Unit();
         },
-        accept_writer: function accept_writer(offset, writer, shift) {
+        accept_writer: function (offset, writer, shift) {
             body.accept_writer(offset + shift, writer, shift);
             return writer;
         }
@@ -634,9 +437,7 @@ function Shift(body) {
     return self;
 }
 
-},{"./monokai":3}],2:[function(require,module,exports){
-"use strict";
-
+},{}],2:[function(require,module,exports){
 module.exports = {
     ThreadModel: ThreadModel,
     AppModel: AppModel,
@@ -653,24 +454,22 @@ function ThreadModel(entry_point, app_model, thread_id, h, s) {
         is_active: false,
         was_active: false,
         was_aborted: false,
-        app_model: app_model,
         thread: entry_point,
         color: { h: h, s: s },
         ts: 0,
         trace: {},
         step: {},
-        data: {},
 
-        push_frame: function push_frame() {
-            self.app_model.push_frame(self);
+        push_frame: function () {
+            app_model.push_frame(self);
         },
-        pop_frame: function pop_frame() {
-            self.app_model.pop_frame(self);
+        pop_frame: function () {
+            app_model.pop_frame(self);
         },
-        frame_var: function frame_var(name, obj) {
-            self.app_model.frame_var(self, name, obj);
+        frame_var: function (name, obj) {
+            app_model.frame_var(self, name, obj);
         },
-        init: function init() {
+        init: function () {
             self.was_active = true;
             self.was_aborted = false;
             self.step = self.thread.unit();
@@ -678,13 +477,13 @@ function ThreadModel(entry_point, app_model, thread_id, h, s) {
                 __thread: self
             };
 
-            while (self.step.isJump || self.step.isAccept || self.step.isCatch) {
+            while (self.step.isJump || self.step.isAccept) {
                 while (self.step.isJump) {
                     var phase = self.step.get_action()(self.ctx);
                     self.ctx = phase.ctx;
                     self.step = phase.step;
                 }
-                if (self.step.isAccept || self.step.isCatch) {
+                if (self.step.isAccept) {
                     self.step = self.step.extract();
                 }
             }
@@ -694,9 +493,9 @@ function ThreadModel(entry_point, app_model, thread_id, h, s) {
                 self.is_active = true;
                 self.step.pre(self);
             }
-            self.app_model.ticked(self);
+            app_model.ticked(self);
         },
-        unselect: function unselect() {
+        unselect: function () {
             var trace = [];
             for (var ts in self.trace) {
                 if (!self.trace.hasOwnProperty(ts)) {
@@ -709,29 +508,29 @@ function ThreadModel(entry_point, app_model, thread_id, h, s) {
                 delete self.trace[ts];
             });
         },
-        abort: function abort() {
+        abort: function () {
             self.unselect();
             self.was_aborted = true;
             self.is_active = false;
             self.ctx = {
                 __thread: self
             };
-            self.app_model.clear_frames(self);
-            self.app_model.ticked(self);
+            app_model.clear_frames(self);
+            app_model.ticked(self);
         },
-        iter: function iter() {
+        iter: function () {
             if (self.step.isStep) {
                 var phase = self.step.get_action()(self.ctx);
                 self.step.post(self);
                 self.ctx = phase.ctx;
                 self.step = phase.step;
-                while (self.step.isJump || self.step.isAccept || self.step.isCatch) {
+                while (self.step.isJump || self.step.isAccept) {
                     while (self.step.isJump) {
                         var phase = self.step.get_action()(self.ctx);
                         self.ctx = phase.ctx;
                         self.step = phase.step;
                     }
-                    if (self.step.isAccept || self.step.isCatch) {
+                    if (self.step.isAccept) {
                         self.step = self.step.extract();
                     }
                 }
@@ -746,7 +545,7 @@ function ThreadModel(entry_point, app_model, thread_id, h, s) {
                 self.is_active = false;
                 self.unselect();
             }
-            self.app_model.ticked(self);
+            app_model.ticked(self);
         }
     };
     return self;
@@ -755,71 +554,22 @@ function ThreadModel(entry_point, app_model, thread_id, h, s) {
 function AppModel() {
     var app_model = {
         on_state_updated: null,
-        notify: function notify() {
+        notify: function () {
             if (app_model.on_state_updated != null) {
                 app_model.on_state_updated(app_model);
             }
-        },
-        frames: [],
-        clear_frames: function clear_frames(thread) {
-            this.frames = this.frames.filter(function (x) {
-                return x.thread_id != thread.thread_id;
-            });
-        },
-        push_frame: function push_frame(thread) {
-            this.frames.push({
-                thread_id: thread.thread_id,
-                thread: thread,
-                vars: []
-            });
-        },
-        pop_frame: function pop_frame(thread) {
-            var tail = [];
-            while (true) {
-                var frame = this.frames.pop();
-                if (frame.thread_id == thread.thread_id) {
-                    break;
-                }
-                tail.push(frame);
-            }
-            while (tail.length > 0) {
-                this.frames.push(tail.pop());
-            }
-        },
-        frame_var: function frame_var(thread, name, obj) {
-            for (var i = this.frames.length - 1; i >= 0; i--) {
-                if (this.frames[i].thread_id == thread.thread_id) {
-                    this.frames[i].vars = this.frames[i].vars.filter(function (val) {
-                        return name == null || val.name != name;
-                    });
-                    this.frames[i].vars.push({ name: name, obj: obj });
-                    return;
-                }
-            }
-            this.push_frame(thread);
-            this.frame_var(thread, name, obj);
-            //throw "WTF?!";
-        },
-        has_frames_var: function has_frames_var() {
-            var count = 0;
-            this.frames.forEach(function (frame) {
-                count += frame.vars.length;
-            });
-            return count > 0;
         }
     };
     return app_model;
 }
 
 },{}],3:[function(require,module,exports){
-"use strict";
-
 module.exports = hl2;
 
 var TML = require("../stepbystep/view").TML;
 
 function hl2(text) {
-    return html(text.replace(/"([^"]+)"/g, "<span class=\"string\">\"$1\"</span>").replace(/function ([^(]+)\(/g, "function <span class=\"fun-name\">$1</span>(").replace(/this.([^ ]+) = function/, "this.<span class=\"fun-name\">$1</span> = function").replace(/function/g, "<span class=\"function\">function</span>").replace(/([^a-z])(\d+)/g, "$1<span class=\"number\">$2</span>").replace(/return/g, "<span class=\"return\">return</span>").replace(/while/g, "<span class=\"while\">while</span>").replace(/if/g, "<span class=\"if\">if</span>").replace(/else/g, "<span class=\"else\">else</span>").replace(/try/g, "<span class=\"try\">try</span>").replace(/catch/g, "<span class=\"catch\">catch</span>").replace(/true/g, "<span class=\"bool\">true</span>").replace(/false/g, "<span class=\"bool\">false</span>").replace(/this/g, "<span class=\"this\">this</span>").replace(/var/g, "<span class=\"var\">var</span>"));
+    return html(text.replace(/function ([^(]+)\(/g, "function <span class=\"fun-name\">$1</span>(").replace(/this.([^ ]+) = function/, "this.<span class=\"fun-name\">$1</span> = function").replace(/function/g, "<span class=\"function\">function</span>").replace(/([^a-z])(\d+)/g, "$1<span class=\"number\">$2</span>").replace(/return/g, "<span class=\"return\">return</span>").replace(/this/g, "<span class=\"this\">this</span>").replace(/var/g, "<span class=\"var\">var</span>"));
 }
 
 function html(text) {
@@ -827,10 +577,6 @@ function html(text) {
 }
 
 },{"../stepbystep/view":4}],4:[function(require,module,exports){
-"use strict";
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
 var TML = {};
 TML.Click = function (x, f) {
     return { is_click: true, text: x, f: f };
@@ -844,14 +590,14 @@ module.exports.TML = TML;
 module.exports.CodeView = React.createClass({
     displayName: "CodeView",
 
-    renderCodeDOMRawHTML: function renderCodeDOMRawHTML(codeDOM) {
+    renderCodeDOMRawHTML: function (codeDOM) {
         var shift = 4;
         if (this.props.shift) {
             shift = this.props.shift;
         }
         return codeDOM.accept_writer(0, HtmlCodeWriter(), shift).get(this.props.width);
     },
-    render: function render() {
+    render: function () {
         return React.createElement(
             "div",
             { className: "codeView" },
@@ -891,7 +637,7 @@ function HtmlCodeWriter() {
             lines: [],
             prev: null
         },
-        begin_marked: function begin_marked(label) {
+        begin_marked: function (label) {
             var prev = self.line_group;
             self.line_group = {
                 is_group: true,
@@ -900,12 +646,12 @@ function HtmlCodeWriter() {
                 prev: prev
             };
         },
-        end_marked: function end_marked() {
+        end_marked: function () {
             var curr = self.line_group;
             self.line_group = curr.prev;
             self.line_group.lines.push(curr);
         },
-        write: function write(marked, offset, line) {
+        write: function (marked, offset, line) {
             var off = repeat(" ", offset);
 
             var sink = [React.createElement(
@@ -969,7 +715,7 @@ function HtmlCodeWriter() {
                     });
                     return;
                 }
-                if ((typeof element === "undefined" ? "undefined" : _typeof(element)) == "object") {
+                if (typeof element == "object") {
                     if (element.is_html) {
                         sink.push(React.createElement("span", { dangerouslySetInnerHTML: {
                                 __html: element.text.replace(/\n/g, "\n" + off)
@@ -990,7 +736,7 @@ function HtmlCodeWriter() {
                 }
             }
         },
-        get: function get(width) {
+        get: function (width) {
             if (self.line_group.label != null) {
                 throw "WTF?!";
             }
@@ -1096,29 +842,25 @@ function clone(x) {
 }
 
 },{}],5:[function(require,module,exports){
-"use strict";
+var YabandehCSCApp = require("./yabandeh/YabandehCSCApp");
 
-var YabandehApp = require("./yabandeh/YabandehApp");
+ReactDOM.render(React.createElement(YabandehCSCApp, null), document.getElementById('yabandeh-placeholder'));
 
-ReactDOM.render(React.createElement(YabandehApp, null), document.getElementById('yabandeh-placeholder'));
-
-},{"./yabandeh/YabandehApp":10}],6:[function(require,module,exports){
-"use strict";
-
+},{"./yabandeh/YabandehCSCApp":10}],6:[function(require,module,exports){
 module.exports = {
     __storage: {},
     __txid: 0,
-    get: function get(key) {
+    get: function (key) {
         if (!this.__storage.hasOwnProperty(key)) {
             throw "WTF?!";
         }
         return deep_copy(this.__storage[key]);
     },
-    put: function put(key, object) {
+    put: function (key, object) {
         object = deep_copy(object);
         this.__storage[key] = object;
     },
-    put_cas: function put_cas(key, object, cas) {
+    put_cas: function (key, object, cas) {
         object = deep_copy(object);
         var obj = this.get(key);
         for (var prop in cas) {
@@ -1131,7 +873,7 @@ module.exports = {
         this.__storage[key] = object;
         return true;
     },
-    put_if: function put_if(key, object, test) {
+    put_if: function (key, object, test) {
         object = deep_copy(object);
         var obj = this.get(key);
         if (!test(obj)) {
@@ -1140,7 +882,7 @@ module.exports = {
         this.__storage[key] = object;
         return true;
     },
-    new_tx: function new_tx() {
+    new_tx: function () {
         var tx_id = "tx:" + this.__txid++;
         var tx = { ver: 0, status: "pending" };
         this.put(tx_id, tx);
@@ -1154,12 +896,10 @@ function deep_copy(object) {
 }
 
 },{}],7:[function(require,module,exports){
-"use strict";
-
 module.exports = React.createClass({
     displayName: "exports",
 
-    renderKeyValueTr: function renderKeyValueTr(key, value) {
+    renderKeyValueTr: function (key, value) {
         return React.createElement(
             "tr",
             null,
@@ -1190,7 +930,7 @@ module.exports = React.createClass({
             )
         );
     },
-    render: function render() {
+    render: function () {
         var a = this.props.db.get("a");
         var b = this.props.db.get("b");
         var c = this.props.db.get("c");
@@ -1243,12 +983,10 @@ module.exports = React.createClass({
 });
 
 },{}],8:[function(require,module,exports){
-"use strict";
-
 module.exports = React.createClass({
     displayName: "exports",
 
-    render: function render() {
+    render: function () {
         var db = this.props.db;
         var a = db.get("a");
         var b = db.get("b");
@@ -1338,24 +1076,22 @@ module.exports = React.createClass({
 });
 
 },{}],9:[function(require,module,exports){
-"use strict";
-
 var view = require("../stepbystep/view");
 var CodeView = view.CodeView;
 
 var ThreadControl = React.createClass({
     displayName: "ThreadControl",
 
-    nextHandler: function nextHandler() {
+    nextHandler: function () {
         this.props.thread.iter();
     },
-    abortHandler: function abortHandler() {
+    abortHandler: function () {
         this.props.thread.abort();
     },
-    rerunHandler: function rerunHandler() {
+    rerunHandler: function () {
         this.props.thread.init();
     },
-    render: function render() {
+    render: function () {
         var controls = [];
         var title = this.props.title;
         if (this.props.thread.is_active) {
@@ -1417,7 +1153,7 @@ var ThreadControl = React.createClass({
 module.exports = React.createClass({
     displayName: "exports",
 
-    render: function render() {
+    render: function () {
         return React.createElement(
             "div",
             { className: "thread-view" },
@@ -1428,8 +1164,6 @@ module.exports = React.createClass({
 });
 
 },{"../stepbystep/view":4}],10:[function(require,module,exports){
-"use strict";
-
 var YabandehModel = require("./YabandehModel");
 var view = require("../stepbystep/view");
 var ThreadView = require("./ThreadView");
@@ -1441,7 +1175,7 @@ var TXView = require("./TXView");
 module.exports = React.createClass({
     displayName: "exports",
 
-    getInitialState: function getInitialState() {
+    getInitialState: function () {
         YabandehModel.on_state_updated = function (app_model) {
             this.setState(app_model);
         }.bind(this);
@@ -1449,7 +1183,7 @@ module.exports = React.createClass({
         return YabandehModel;
     },
 
-    render: function render() {
+    render: function () {
         return React.createElement(
             "table",
             null,
@@ -1462,22 +1196,23 @@ module.exports = React.createClass({
                     React.createElement(
                         "td",
                         { className: "first-td" },
-                        React.createElement(CodeView, { shift: 2, dom: this.state.clean_read })
+                        React.createElement(CodeView, { shift: 2, dom: this.state.all_source })
                     ),
                     React.createElement(
                         "td",
                         { className: "second-td" },
-                        React.createElement(CodeView, { shift: 2, dom: this.state.update }),
-                        React.createElement(CodeView, { shift: 2, dom: this.state.commit }),
-                        React.createElement(CodeView, { shift: 2, dom: this.state.clean })
-                    ),
-                    React.createElement(
-                        "td",
-                        { className: "third-td" },
-                        React.createElement(ThreadView, { title: "Swap a and b", thread: this.state.tx1 }),
-                        React.createElement(ThreadView, { title: "Swap b and c", thread: this.state.tx2 }),
-                        React.createElement(DBView, { db: this.state.db }),
-                        React.createElement(TXView, { db: this.state.db })
+                        React.createElement(
+                            "div",
+                            { style: { "position": "relative" } },
+                            React.createElement(
+                                "div",
+                                { style: { "position": "fixed" } },
+                                React.createElement(ThreadView, { title: "Swap a and b", thread: this.state.tx1 }),
+                                React.createElement(ThreadView, { title: "Swap b and c", thread: this.state.tx2 }),
+                                React.createElement(DBView, { db: this.state.db }),
+                                React.createElement(TXView, { db: this.state.db })
+                            )
+                        )
                     )
                 )
             )
@@ -1486,8 +1221,6 @@ module.exports = React.createClass({
 });
 
 },{"../stepbystep/view":4,"./DBView":7,"./TXView":8,"./ThreadView":9,"./YabandehModel":11}],11:[function(require,module,exports){
-"use strict";
-
 var dsl = require("../stepbystep/dsl");
 
 var Statement = dsl.Statement;
@@ -1636,6 +1369,10 @@ app_model.db = db;
 app_model.ticked = function (thread) {
     app_model.notify();
 };
+app_model.clear_frames = function (thread) {};
+app_model.push_frame = function (thread) {};
+app_model.pop_frame = function (thread) {};
+app_model.frame_var = function (thread, name, obj) {};
 module.exports = app_model;
 
 },{"../stepbystep/dsl":1,"../stepbystep/model":2,"../stepbystep/monokai":3,"./DB":6}]},{},[5]);

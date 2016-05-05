@@ -3,9 +3,51 @@ body {
     font-weight: 300;
 }
 
-#ramp {
+#paxos {
     padding: 5px;
 }
+
+
+
+.thread-controls {
+    background-color: black;
+    padding: 5px;
+    width: 250px;
+}
+
+.thread-controls .tv-btn {
+    margin-right: 2px;
+}
+
+.lee-control {
+    background-color: rgb(76, 126, 127);
+    padding: 2px 2px 2px 5px;
+}
+
+.ross-control {
+    background-color: rgb(204, 174, 0);;
+    padding: 2px 2px 2px 5px;
+}
+
+.thread-controls .general {
+    float: left;
+}
+
+.thread-controls .general span {
+    color: rgb(248, 248, 242);
+    font-size: 0.8em;
+    font-family: Monaco, monospace;
+}
+
+.thread-controls .control {
+    float: right;
+}
+
+.thread-controls .clear {
+    clear: both;
+}
+
+
 
 
 .menu {
@@ -21,6 +63,30 @@ body {
     margin-right: 5px;
     font-weight: bold;
 }
+
+
+
+.menulink {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    margin-right: 5px;
+    font-weight: bold;
+}
+
+.menulink.free {
+    background-color: white;
+    color: black;
+    text-decoration: inherit;
+    cursor: pointer;
+}
+
+.menulink.dis {
+    color: #888888;
+}
+
+
 
 .menu span.curr {
     background-color: #DDDDDD;
@@ -181,6 +247,27 @@ b {
     font-size: 1em;
 }
 
+/* */
+.messages-msg {
+    border-style: solid;
+    border-width: 2px;
+    margin-top: 5px;
+}
+.msg-header {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 2px;
+    padding-top: 2px;
+}
+.msg-body {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+}
+.msg-label {
+    margin-bottom: 2px;
+    font-weight: bold;
+}
 /* varview */
 
 .var-table {
@@ -188,7 +275,7 @@ b {
 }
 .var-name {
     text-align: right;
-    padding-left: 5px;
+    padding-left: 7px;
     padding-right: 5px;
     padding-top: 2px;
     padding-bottom: 2px;
@@ -228,6 +315,31 @@ b {
     padding-bottom: 2px;
 }
 
+
+.help {
+    padding-left: 7px;
+    padding-right: 7px;
+    max-width: 300px;
+}
+
+.help p {
+    margin-top: 4px;
+}
+
+.help .codeView {
+    margin-top: 4px;
+    max-width: 300px;
+    overflow: hidden;
+}
+
+.databases {
+    padding-left: 7px;
+}
+
+.table_name {
+    margin-bottom: 2px;
+    font-weight: bold;
+}
 
 /* dbview, txview */
 

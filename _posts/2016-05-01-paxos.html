@@ -17,9 +17,9 @@ marker: vpaxos
 <div class="brim"><div class="content">
   <p class="edge">The main result of the <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf">Paxos Made Simple<a> paper by Leslie Lamport is an algorithm to transform any <a class="link" href="https://en.wikipedia.org/wiki/Finite-state_machine">finite-state machine (FSM)</a> into a fault-tolerant distributed system.</p>
 
-  <p>It sounds complicated but with the step-by-step <a class="link" href="TODO">visualization</a> and this post I'm going to demystify its complexity.</p>
+  <p>It sounds complicated but with the step-by-step <a class="link" href="http://rystsov.info/evil-scheduler/paxos.html">visualization</a> and this post I'm going to demystify its complexity.</p>
 
-  <a href="TODO"><img src="/images/paxos.png" width="700"/></a>
+  <a href="http://rystsov.info/evil-scheduler/paxos.html"><img src="/images/paxos.png" width="700"/></a>
 
   <p>Let us start with FSM. It's a fancy name for a pretty wide class of applications. How wide is it? If you can model your computation as a pure function from a state and an event into a new state and you have the same limit on the size of each state/event then your computation (your application) is a part of the FSM class.</p>
 
