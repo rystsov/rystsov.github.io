@@ -1,3 +1,8 @@
+.vpaxos .brim .gist {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
 .vpaxos .brim h3 {
     text-align: center;
     font-size: 1.3em;
@@ -11,6 +16,12 @@
 }
 .vpaxos .brim h4 {
     text-align: left;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 0.5em;
+}
+.vpaxos .brim h5 {
+    text-align: left;
     font-size: 1.1em;
     font-weight: bold;
     margin-top: 0.5em;
@@ -18,6 +29,10 @@
 .vpaxos #vpaxos1 {
     margin-top: 1.5em;
     margin-bottom: 1.5em;
+}
+
+.vpaxos .num {
+	color: #CA2A1F;
 }
 
 .vpaxos .b {
