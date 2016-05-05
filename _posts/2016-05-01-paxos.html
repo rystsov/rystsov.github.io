@@ -1,0 +1,92 @@
+---
+layout: post
+title: "Visualization of distributed FSM over Paxos"
+name: "Visualization of distributed FSM over Paxos"
+tags: ["pre_distr"]
+desc: "Step-by-step visualization of distributed FSM over Single Decree Paxos"
+has_comments: true
+ignore_css: true
+marker: vpaxos
+---
+
+<div id="vpaxos1" class="brim"><div class="content">
+  <h2>Visualization of distributed FSM over Paxos</h2>
+  <!-- tweet -->
+</div></div>
+
+<div class="brim"><div class="content">
+  <p class="edge">The main result of the paxos paper is an algorithm to transform any <a class="link" href="https://en.wikipedia.org/wiki/Finite-state_machine">finite-state machine (FSM)</a> into a fault-tolerant distributed system.</p>
+
+  <p>It sounds complicated but with the step-by-step vizualization and this post I'm going to demystify its complexity.</p>
+
+  <p>Let us start with FSM. It's a fancy name for a pretty wide class of applications. How wide is it? If you can model your computation as a pure function from a state and an event into a new state and you have a fixed limit on the size of state (and event too) then your computation (your application) is a FSM.</p>
+
+  <p>You can guess that almost any web application using three-tier architecture matches the description: the stateless servers play a role of the pure function while the size of database and the size of http messages have natural upper bounds.</p>
+
+  <p>Now it should be clear <b>why Paxos is important:</b> it allows to convert almost any application into a distributed system to achieve more reliability than the hardware of the individual nodes provides.</p>
+
+  <p>The algorithm is mentioned in the PMS paper (<span>1998</span>) and is based on other ideas from there. Let me to remind you the other breakthriught ideas of the PMS paper:</p>
+
+  <ul>
+    <li class="extra-step">Leslie Lamport shows how to build linearizable distributed data structures:
+      <ul>
+        <li>a distributed write-once register</li>
+        <li>a distributed append-only log</li>
+      </ul>
+    </li>
+    <li>He suggests to use distributed append-only log to store a sequence of events leading to the current state instead of storing the state inself (later rediscovered as the event sourcing pattern).</li>
+  </ul>
+
+  <p>Now (<span>2016</span>) it looks natural to use logs for FSM (see zookeeper, etcd, raft). But logs aren't the first thing that I want to work with as an engineer since they require to implement garbage collection and snapshots (nasty work, see <a class="link" href="http://research.google.com/archive/paxos_made_live.html">Paxos Made Live</a> paper by Google). And on the other side it's possible to imagine how other than logs distribibuted data structures could model FSM. So I wonder if they really do and why FSMs over them aren't known.</p>
+
+  <ul>
+    <li>They do. For example <a class="link" href="http://treode.github.io/">TreodeDB</a> used this approach. It's interesting that I haven't seen academic papers dedicated to this idea, but I definitly run into several industry systems built with it. Please see the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a> post for formal information why the distributed variable works and how to build FSM on top of it.</li>
+
+    <li>IMHO the log-based solutions are more popular because they simply have time advantage. Until Vertical Paxos (<span>2009</span>) was published, log replication was the only consensus protocol capable of cluster membership change thous it was the only practical solution for highly available services. Now we have a couple algorithms to choose from. Take a look on the <a class="link" href="http://rystsov.info/2016/01/05/raft-paxos.html">Best of both worlds: Raft's joint consensus + Single Decree Paxos</a> post if you're interested in understanding how dynamic membership work with distributed variable.</li>
+  </ul>
+
+  <h4>Visualization</h4>
+
+  <p>Now when we understood that there is a place for alternative distributed FSM let's discuss the visualization. We're going to vizualized the work of distributed FSM for an intercontinental ballistic missile launch system.</p>
+
+  <h5>Problem</h5>
+
+  <p>Imagine that we want to model an intercontinental ballistic missile launch system with the following rules:</p>
+
+  <ol>
+    <li>The missile is launched when at least two generals signed off the launch.</li>
+    <li>Until missile is launched a general can revoke their sign off</li>
+  </ol>
+
+  <p>The (non-distributed) FSM engine may look like</p>
+
+  {% gist rystsov/1221d05bebf70197b6dd0b08d335a86a %}
+
+  <p>And the state transition functions are:</p>
+
+  {% gist rystsov/3c3efd10754cc8f585ed5710f9a0cebc %}
+
+  <p>The rules define the possible state of the system; while the actual state is defined by the generals behaviour which is quite simple in our example:</p>
+
+  <ol>
+    <li>unsign the launch</li>
+    <li>sign the launch</li>
+    <li>goto 1</li>
+  </ol>
+
+  <h5>Distributed FSM</h5>
+
+  <p>Our goal is to build/vizualize distributed FSM based on Single Decree Paxos.</p>
+
+  <p>From a programmer's perspective distributed FSM is set of nodes with the execute service. Its doesn't matter which nodes are used for each execute service call since the result of execution anyway must correspond to the result of the execution of the same action on the (non-distributed) FSM.</p>
+
+  <p>The hard part of distributed FSM is that it should tolarate node failures message losses.</p>
+
+  <h5>Visualization</h5>
+
+  <p>The vizualization consists of two code columns and the data side view. The first column contains distributed Single Decree Paxos FSM engine (<span>36</span> lines of code); while the second column is dedicated for the state transition functions and the generals behaviour (<span>33</span> lines of code).</p>
+
+  <p>It worths noticing that the state transition functions weren't changed at all, so it extrimly easy to convert existing FSM into DFSM. By the way the actions in the example look like message handlers in the actor model, so FSM over SDP is great way for storing the state of the actors.</p>
+</div></div>
+
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
