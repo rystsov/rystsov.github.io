@@ -18,39 +18,39 @@ private: true
 <div class="brim"><div class="content">
   <p class="edge">The main result of the <a class="link" href="http://research.microsoft.com/en-us/um/people/lamport/pubs/paxos-simple.pdf">Paxos Made Simple<a> paper by Leslie Lamport is an algorithm to transform any <a class="link" href="https://en.wikipedia.org/wiki/Finite-state_machine">finite-state machine (FSM)</a> into a fault-tolerant distributed system.</p>
 
-  <p>It sounds complicated but with the step-by-step <a class="link" href="http://rystsov.info/evil-scheduler/paxos.html">visualization</a> and this post I'm going to demystify its complexity.</p>
+  <p>It sounds complicated, but with the step-by-step <a class="link" href="http://rystsov.info/evil-scheduler/paxos.html">visualization</a> and this post I'm going to demystify its complexity.</p>
 
   <a href="http://rystsov.info/evil-scheduler/paxos.html"><img src="/images/paxos.png" width="700"/></a>
 
-  <p>Let us start with FSM. It's a fancy name for a pretty wide class of applications. How wide is it? If you can model your computation as a pure function from a state and an event into a new state and you have the same limit on the size of each state/event then your computation (your application) is a part of the FSM class.</p>
+  <p>Let us start with the FSM. It's a fancy name for a pretty wide class of applications. How wide is it? If you can model your computation as a pure function from a state and an event into a new state, and you have a fixed limit on the size of each state/event then your computation (your application) belongs to the FSM class.</p>
 
-  <p>You can guess that almost any web application using three-tier architecture matches the description: the stateless servers play a role of the pure function while size of the database is limited by the size of storage.</p>
+  <p>You can guess that almost any web application using three-tier architecture matches the description: the stateless servers play the role of the pure function while the size of the database is limited by the storage capacity.</p>
 
-  <p>Now it should be clear <b>why Paxos is important:</b> it allows to convert almost any application into a distributed system to achieve more reliability than each node provides.</p>
+  <p>Now it should be clear <b>why Paxos is important:</b> it allows to convert almost any application into a distributed system to achieve more reliability than each individual node provides.</p>
 
-  <p>The paper was written in <span class="num">2001</span> and it contains several ground breaking ideas:</p>
+  <p>The paper was written in <span class="num">2001</span> and it contains several ground-breaking ideas:</p>
 
   <ul>
-    <li>Leslie Lamport demonstrated how to build linearizable distributed data structures:
+    <li>Leslie Lamport demonstrated how to build two linearizable distributed data structures:
       <ul>
         <li>a distributed write-once register</li>
         <li>a distributed append-only log</li>
       </ul>
     </li>
-    <li>He suggested to use distributed append-only log to store sequence of all events leading a system to the current state instead of storing the state itself (later this idea was rediscovered as the event sourcing pattern).</li>
+    <li>He suggested to use distributed append-only log to store the sequence of all events leading a system to the current state instead of storing the state itself (later this idea was rediscovered as the event sourcing pattern).</li>
   </ul>
 
-  <p>In <span class="num">2016</span> it looks natural to use logs for FSM (see ZooKeeper, Etcd, Raft). But logs aren't the first thing that I want to work with as an engineer because they force me to implement garbage collection and snapshots (nasty work, see <a class="link" href="http://research.google.com/archive/paxos_made_live.html">Paxos Made Live</a> paper by Google). Also it's possible to imagine how other than logs distributed data structures could model FSM I wonder if they really do and why FSMs over them aren't known..</p>
+  <p>In <span class="num">2016</span> it feels natural to use logs for FSM (see ZooKeeper, Etcd, Raft). But logs aren't the first thing that I want to work with as an engineer because they force me to implement garbage collection and snapshots (nasty stuff, see the <a class="link" href="http://research.google.com/archive/paxos_made_live.html">Paxos Made Live</a> paper by Google). Also it's possible to imagine how distributed data structures other than logs could model FSM. I wonder if they really exist and why FSMs implemented on top of them aren't known...</p>
 
   <ul>
-    <li>They do. For example <a class="link" href="http://treode.github.io/">TreodeDB</a> used this approach. It's interesting that I haven't seen any academic paper dedicated to this idea, but I saw several industry systems built with it. So I practiced my math fu, described and proved FSM over Single Decree Paxos in the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a> post.</li>
+    <li>They do exist. For example, <a class="link" href="http://treode.github.io/">TreodeDB</a> used this approach. It's interesting that I haven't seen any academic paper dedicated to this idea, but I saw several industry systems built with it. So I practiced my Math-Fu, described and proved FSM over Single Decree Paxos in the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos Works</a> post.</li>
 
-    <li>IMHO the log-based solutions are more popular because they had time advantage. Until Vertical Paxos was published in <span class="num">2009</span>, log replication was the only consensus protocol capable of cluster membership change thus it was the only practical solution for highly available services. But now we have a couple algorithms to choose from, for example Vertical Paxos and Raft's joint consensus membership change are among them. Take a look on the <a class="link" href="http://rystsov.info/2016/01/05/raft-paxos.html">Best of both worlds: Raft's joint consensus + Single Decree Paxos</a> post if you're interested in understanding how dynamic membership works with a distributed variable.</li>
+    <li>IMHO the log-based solutions are more popular because they had the advantage of time. Until Vertical Paxos was published in <span class="num">2009</span>, log replication was the only consensus protocol capable of cluster membership change. Thus, it was the only practical solution for highly available services. But now we have a few more algorithms to choose from. For example Vertical Paxos and Raft's joint consensus membership change are among them. Take a look at the <a class="link" href="http://rystsov.info/2016/01/05/raft-paxos.html">Best of both worlds: Raft's joint consensus + Single Decree Paxos</a> post if you're interested in understanding how dynamic membership works with a distributed variable.</li>
   </ul>
 
   <h4>Visualization</h4>
 
-  <p>Now when we understood that there is a place for alternative distributed FSM let's discuss the visualization. We're going to visualized the work of distributed FSM managing an intercontinental ballistic missile launch system.</p>
+  <p>Now that we understand that there is a place for alternative distributed FSMs, let's discuss the visualization. We're going to visualize the work of a distributed FSM managing an intercontinental ballistic missile launch system.</p>
 
   <h5>FSM</h5>
 
@@ -58,7 +58,7 @@ private: true
 
   <ol>
     <li>The missile is launched when at least two generals signed off the launch.</li>
-    <li>Until missile is launched a general can revoke their sign off.</li>
+    <li>Until the missile is launched a general can revoke their sign-off.</li>
   </ol>
 
   <p>The (non-distributed) FSM engine may look like</p>
@@ -69,7 +69,7 @@ private: true
 
   {% gist rystsov/3c3efd10754cc8f585ed5710f9a0cebc %}
 
-  <p>The rules define the possible state of the system; while the actual state is defined by the generals behavior which is quite simple in our example:</p>
+  <p>The rules define the possible states of the system, while the actual state is defined by the generals' behavior. It's quite simple in our example:</p>
 
   <ol>
     <li>unsign the launch</li>
@@ -79,13 +79,13 @@ private: true
 
   <h5>Distributed FSM</h5>
 
-  <p>Distributed FSM has several endpoints with the execute service, but it doesn't matter which endpoint you choose because the system behaves exactly as a system with several endpoints but leading to the same (non-distributed) FSM. The only difference that the distributed version runs on <span class="num">2n+1</span> nodes and tolerates up to <span class="num">n</span> failures.</p>
+  <p>Distributed FSM has several endpoints with the <code>execute</code> service, but it doesn't matter which endpoint you choose because the system behaves exactly like a system with several endpoints but leading to the same (non-distributed) FSM. The only difference is that the distributed version runs on <span class="num">2n+1</span> nodes and tolerates up to <span class="num">n</span> failures.</p>
 
   <h5>Visualization</h5>
 
-  <p>The visualization consists of two code columns and the data side view. The first column contains code of a distributed Single Decree Paxos FSM engine (36 lines of code); while the second column is dedicated for the state transition functions and the generals behavior (33 lines of code).</p>
+  <p>The visualization consists of two code columns and a side view with data. The first column contains the code of a distributed Single Decree Paxos FSM engine (36 lines of code); while the second column is dedicated for the state transition functions and the generals behavior (33 lines of code).</p>
 
-  <p>It’s worth to mention that the state transition functions weren't changed at all, so it extremely easy to convert an existing FSM into a DFSM. By the way the actions in the example look like message handlers in the actor model, so FSM over SDP looks like the great way to store the state of the actors from Akka or Orleans frameworks.</p>
+  <p>It’s worth to mention that the state transition functions weren't changed at all, so it is extremely easy to convert an existing FSM into a DFSM. Incidentaly, the actions in the example look like message handlers in the actor model, so FSM over SDP looks like a great way to store the state of actors from Akka or Orleans frameworks.</p>
 </div></div>
 
 <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
