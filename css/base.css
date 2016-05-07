@@ -11,6 +11,12 @@ body {
     font-size: 110%;
 }
 
+.column {
+    margin: 2em auto 2em auto;
+    max-width: 50em;
+    font-size: 110%;
+}
+
 .menu .home {
     font-size: 32;
     font-variant: small-caps;
