@@ -1,0 +1,78 @@
+<html>
+<head>
+    <title>{{ page.title }}</title>
+    <meta charset="UTF-8" />
+
+    <link type="application/atom+xml" rel="alternate" href="http://rystsov.info/feed.xml" title="Rystsov's programming blog">
+
+    {% if page.ignore_css %}
+        <link href="/css/reset.css" rel="stylesheet">
+    {% endif %}
+
+    {% if page.marker %}
+        <link href="/css/base.css" rel="stylesheet">
+        <link href="/css/{{ page.marker }}.css" rel="stylesheet">
+    {% endif %}
+
+    {% unless page.ignore_css %}
+        <link href="/css/common.css" rel="stylesheet">
+        <link href="/css/post.css" rel="stylesheet">
+        <link href="/css/menu.css" rel="stylesheet">
+    {% endunless %}
+
+    {% if page.has_math %}
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+            });
+        </script>
+        <script type="text/javascript" src="/MathJax-2.5.3/MathJax.js?config=default"></script>
+    {% endif %}
+
+    {% if page.has_comments %}
+        <link href="/css/disqus.css" rel="stylesheet">
+    {% endif %}
+
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-50626137-2', 'rystsov.info');
+        ga('send', 'pageview');
+    </script>
+</head>
+<body>
+<div id="column">
+    <div class="{{ page.marker }}">
+        {{ content }}
+
+        {% if page.has_comments %}
+            <div id="low_internet">
+                <div id="disqus_thread"></div>
+                <script type="text/javascript">
+                    /* * * CONFIGURATION VARIABLES * * */
+                    var disqus_shortname = 'rystsov';
+                    
+                    /* * * DON'T EDIT BELOW THIS LINE * * */
+                    (function() {
+                        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+            </div>
+        {% endif %}
+    </div>
+    <div id="footer">
+        <div id="contacts">
+            Denis Rystsov &#8212; <a href="/files/rystsov.pdf">resume</a><br/>
+            <a href="https://twitter.com/rystsov">@rystsov</a><br/>
+            <a href="https://github.com/rystsov">GitHub Account</a><br/>
+            <a href="mailto:rystsov.denis@gmail.com">rystsov.denis@gmail.com</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: page
 title: "Visualization of distributed FSM over Paxos"
 name: "Visualization of distributed FSM over Paxos"
 tags: ["pre_distr"]
@@ -9,6 +9,10 @@ ignore_css: true
 marker: vpaxos
 private: true
 ---
+
+<div class="menu">
+    <span class="home"><a href="{{ site.url }}/">Home</a></span>
+</div>
 
 <div id="vpaxos1" class="brim"><div class="content">
   <h2>Visualization of distributed FSM over Paxos</h2>
@@ -84,7 +88,9 @@ private: true
   <h5>Visualization</h5>
 
   <p>The visualization consists of two code columns and a side view with data. The first column contains the code of a distributed Single Decree Paxos FSM engine (36 lines of code); while the second column is dedicated for the state transition functions and the generals behavior (33 lines of code).</p>
+</div></div>
 
+<div class="brim"><div class="content">
   <p>It’s worth to mention that the state transition functions weren't changed at all, so it is extremely easy to convert an existing FSM into a DFSM. Incidentaly, the actions in the example look like message handlers in the actor model, so FSM over SDP looks like a great way to store the state of actors from Akka or Orleans frameworks.</p>
 </div></div>
 
