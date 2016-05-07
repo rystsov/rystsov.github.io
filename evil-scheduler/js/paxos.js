@@ -527,7 +527,7 @@ var hl2 = require("../stepbystep/monokai");
 
 var MAJORITY = 2;
 
-var __acceptor = Seq([Nope2("function Acceptor() {"), Shift(Seq([Nope2("this.promised = {};"), Nope2("this.accepted = {};"), Nope2("this.promise = function(key, ballot) {"), Shift(Seq([Nope2("this.promised[key] = ballot;"), Nope2("return ok(this.accepted[key]);")])), Nope2("};"), Nope2("this.accept = function(key, ballot, value) {"), Shift(Seq([Nope2("if (this.promised[key] == ballot) {"), Shift(Seq([Nope2("this.accepted[key] = {ballot: ballot, value: value};"), Nope2("return ok();")])), Nope2("}"), Nope2("return fail(this.promised[key]);")])), Nope2("};")])), Nope2("}")]);
+var __acceptor = Seq([Nope2("function Acceptor() {"), Shift(Seq([Nope2("this.promised = {};"), Nope2("this.accepted = {};"), Nope2("this.promise = function(key, ballot) {"), Shift(Seq([Nope2("this.promised[key] = ballot;"), Nope2("return ok(this.accepted[key]);")])), Nope2("};"), Nope2("this.accept = function(key, ballot, value) {"), Shift(Seq([Nope2("if (this.promised[key] <= ballot) {"), Shift(Seq([Nope2("this.promised[key] = ballot;"), Nope2("this.accepted[key] = {ballot: ballot, value: value};"), Nope2("return ok();")])), Nope2("}"), Nope2("return fail(this.promised[key]);")])), Nope2("};")])), Nope2("}")]);
 
 var paxos_model = AppModel();
 paxos_model.messages = new Messages();
@@ -993,7 +993,8 @@ function AcceptMessage(messages, acceptor, key, ballot, next, mailbox, thread) {
         }
 
         var result;
-        if (this.acceptor.promised[this.key] == this.ballot) {
+        if (this.acceptor.promised[this.key] <= this.ballot) {
+            this.acceptor.promised[this.key] = this.ballot;
             this.acceptor.accepted[this.key] = { ballot: this.ballot, value: this.value };
             result = new AcceptOkMessage(this.messages, this, this.mailbox, this.thread);
         } else {
