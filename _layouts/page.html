@@ -43,10 +43,11 @@
     </script>
 </head>
 <body>
-<div id="column">
-    <div class="{{ page.marker }}">
-        {{ content }}
 
+{{ content }}
+
+<div class="column">
+    <div class="{{ page.marker }}">
         {% if page.has_comments %}
             <div id="low_internet">
                 <div id="disqus_thread"></div>
