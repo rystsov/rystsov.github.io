@@ -35,13 +35,13 @@ private: true
 
       <p>Now it should be clear <b>why Paxos is important:</b> it allows to convert almost any application into a distributed system to achieve more reliability than each individual node provides.</p>
 
-      <p>The paper was written in <span class="num">2001</span> and it contains several ground-breaking ideas:</p>
+      <p>The <span class="help-tooltip" title="Paxos Made Simple">paper</span> was written in <span class="num">2001</span> and it contains several ground-breaking ideas:</p>
 
       <ul>
         <li>Leslie Lamport demonstrated how to build two linearizable distributed data structures:
           <ul>
-            <li>a distributed write-once register</li>
-            <li>a distributed append-only log</li>
+            <li>a distributed write-once register (based on his Synod protocol)</li>
+            <li>a distributed append-only log (known as Multi-Paxos, based on the sequence of distributed write-once registers)</li>
           </ul>
         </li>
         <li>He suggested to use distributed append-only log to store the sequence of all events leading a system to the current state instead of storing the state itself (later this idea was rediscovered as the event sourcing pattern).</li>
@@ -50,7 +50,7 @@ private: true
       <p>In <span class="num">2016</span> it feels natural to use logs for FSM (see ZooKeeper, Etcd, Raft). But logs aren't the first thing that I want to work with as an engineer because they force me to implement garbage collection and snapshots (nasty stuff, see the <a class="link" href="http://research.google.com/archive/paxos_made_live.html">Paxos Made Live</a> paper by Google). Also it's possible to imagine how distributed data structures other than logs could model FSM. I wonder if they really exist and why FSMs implemented on top of them aren't known...</p>
 
       <ul>
-        <li>They do exist. For example, <a class="link" href="http://treode.github.io/">TreodeDB</a> used this approach. It's interesting that I haven't seen any academic paper dedicated to this idea, but I saw several industry systems built with it. So I practiced my Math-Fu, described and proved FSM over Single Decree Paxos in the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos Works</a> post.</li>
+        <li>They do exist. For example, <a class="link" href="http://treode.github.io/">TreodeDB</a> used Synod-based distributed rewritable register. It's interesting that I haven't seen any academic paper dedicated to implementation of FSM on top of distributed variable, but there are systems like <a class="link" href="https://github.com/basho/riak_ensemble">riak_ensemble</a> and TreodeDB. So I practiced my Math-Fu, described and proved FSM over Single Decree Paxos (distributed variable) in the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos Works</a> post.</li>
 
         <li>IMHO the log-based solutions are more popular because they had the advantage of time. Until Vertical Paxos was published in <span class="num">2009</span>, log replication was the only consensus protocol capable of cluster membership change. Thus, it was the only practical solution for highly available services. But now we have a few more algorithms to choose from. For example Vertical Paxos and Raft's joint consensus membership change are among them. Take a look at the <a class="link" href="http://rystsov.info/2016/01/05/raft-paxos.html">Best of both worlds: Raft's joint consensus + Single Decree Paxos</a> post if you're interested in understanding how dynamic membership works with a distributed variable.</li>
       </ul>
@@ -91,6 +91,12 @@ private: true
       <h5>Visualization</h5>
 
       <p>The visualization consists of two code columns and a side view with data. The first column contains the code of a distributed Single Decree Paxos FSM engine (36 lines of code); while the second column is dedicated for the state transition functions and the generals behavior (33 lines of code).</p>
+
+      <h5>FAQ</h5>
+
+      <p>The Paxos Made simple describe the Proposer's, Acceptor's and Leaner's roles in a Paxos system but the visualization uses only the first two. How does it work without Leaners?</p>
+
+      <p>I heard that Paxos uses leader to serialize the updates and leader election to be fault-tolerance. How does the visualization work without Leader?</p>
     </div></div>
   </div>
 </div>

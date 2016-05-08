@@ -1,3 +1,11 @@
+.vpaxos .brim .help-tooltip {
+    border-bottom-color: blue;
+    border-bottom-width: 1px;
+    border-bottom-style: dotted;
+    color: blue;
+    cursor: help;
+}
+
 .vpaxos .brim .gist {
     margin-top: 1em;
     margin-bottom: 1em;
@@ -103,8 +111,15 @@
     margin-top: 0;
 }
 
-.vpaxos .brim li {
+.vpaxos .brim ul li {
     line-height: 1.3em;
+    margin-top: 0.4em;
+}
+
+.vpaxos .brim li ul li {
+    line-height: 1.3em;
+    margin-top: 0.1em;
+    list-style-type: disc;
 }
 
 .vpaxos .brim ol {
