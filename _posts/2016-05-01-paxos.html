@@ -8,7 +8,6 @@ has_comments: true
 ignore_css: true
 marker: vpaxos
 vpaxos: true
-private: true
 ---
 
 <div class="column">
@@ -50,14 +49,14 @@ private: true
       <p>In <span class="num">2016</span> it feels natural to use logs for FSM (see ZooKeeper, Etcd, Raft). But logs aren't the first thing that I want to work with as an engineer because they force me to implement garbage collection and snapshots (nasty stuff, see the <a class="link" href="http://research.google.com/archive/paxos_made_live.html">Paxos Made Live</a> paper by Google). Also it's possible to imagine how distributed data structures other than logs could model FSM. I wonder if they really exist and why FSMs implemented on top of them aren't known...</p>
 
       <ul>
-        <li>They do exist. For example, <a class="link" href="http://treode.github.io/">TreodeDB</a> used Synod-based distributed rewritable register. It's interesting that I haven't seen any academic paper dedicated to implementation of FSM on top of distributed variable, but there are industrial systems like <a class="link" href="https://github.com/basho/riak_ensemble">riak_ensemble</a> and TreodeDB which use it. So I practiced my Math-Fu, described and proved FSM over Single Decree Paxos (distributed variable) in the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos Works</a> post.</li>
+        <li>They do exist. For example, <a class="link" href="http://treode.github.io/">TreodeDB</a> used Synod-based distributed rewritable register. It's interesting that I haven't seen any academic paper dedicated to implementation of FSM on top of the distributed rewritable register datastructure (a distributed variable), but there are industrial systems like <a class="link" href="https://github.com/basho/riak_ensemble">riak_ensemble</a> and TreodeDB which use it. So I practiced my Math-Fu, described and proved FSM over Single Decree Paxos (a distributed variable flavor) in the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos Works</a> post.</li>
 
         <li>IMHO the log-based solutions are more popular because they had the advantage of time. Until Vertical Paxos was published in <span class="num">2009</span>, log replication was the only consensus protocol capable of cluster membership change. Thus, it was the only practical solution for highly available services. But now we have a few more algorithms to choose from. For example Vertical Paxos and Raft's joint consensus membership change are among them. Take a look at the <a class="link" href="http://rystsov.info/2016/01/05/raft-paxos.html">Best of both worlds: Raft's joint consensus + Single Decree Paxos</a> post if you're interested in understanding how dynamic membership works with a distributed variable.</li>
       </ul>
 
       <h4>Visualization</h4>
 
-      <p>Now that we understand that there is a place for alternative distributed FSMs, let's discuss the visualization. We're going to visualize the work of a distributed FSM managing an intercontinental ballistic missile launch system.</p>
+      <p>Now when we understand that there is a place for alternative distributed FSMs, let's discuss the visualization. We're going to visualize the work of a distributed FSM managing an intercontinental ballistic missile launch system.</p>
 
       <h5>FSM</h5>
 
@@ -86,11 +85,15 @@ private: true
 
       <h5>Distributed FSM</h5>
 
-      <p>Distributed FSM has several endpoints with the <code>execute</code> service, but it doesn't matter which endpoint you choose because the system behaves exactly like a system with several endpoints but leading to the same (non-distributed) FSM. The only difference is that the distributed version runs on <span class="num">2n+1</span> nodes and tolerates up to <span class="num">n</span> failures.</p>
+      <p>Distributed FSM has several endpoints (think of nodes running the <code>execute</code> REST api) but it doesn't matter which endpoint you choose to work with because the system behaves exactly like a system with several endpoints leading to the same (non-distributed) FSM. The only difference is that the distributed version runs on <span class="num">2n+1</span> nodes and tolerates up to <span class="num">n</span> failures.</p>
 
       <h5>Visualization</h5>
 
-      <p>The visualization consists of two code columns and a side view with data. The first column contains the code of a distributed Single Decree Paxos FSM engine (36 lines of code); while the second column is dedicated for the state transition functions and the generals behavior (33 lines of code).</p>
+      <p>The visualization consists of two code columns and a side view with a) the persistent state b) a watch list with all variables from the stackframes and c) a network interface to control the order and lost of the cross nodes messages.</p>
+
+      <p>The first column contains the code of a distributed Single Decree Paxos FSM engine (37 lines of code); while the second column is dedicated for the state transition functions and the generals behavior (29 lines of code).</p>
+
+      <p>You can iterate through the visualization by clicking the start/step buttons in the upper-right corner next to the 'General Lee' and 'General Ross' labels. General Lee works with the 0th proposer and Ross uses the 1th proposer.</p>
     </div></div>
   </div>
 </div>
@@ -110,17 +113,25 @@ private: true
 
       <div class="faq">The Paxos Made Simple paper describes the proposer's, acceptor's and leaner's roles in a Paxos system but the visualization uses only the first two. How does it work without leaners?</div>
 
-        <p>Leslie Lamport wrote</p>
-        <blockquote>The obvious algorithm is to have each acceptor, whenever it accepts a proposal, respond to all learners, sending them the proposal</blockquote>
-        <p>In the visualization's version of paxos when an acceptor accepts a value it responds to the proposer so the proposers de facto play the leaner's role also.</p>
+        <p>Leslie Lamport wrote in the Paxos Made Simple paper</p>
+        
+        <blockquote>The obvious algorithm is to have each acceptor, whenever it accepts a proposal, respond to all learners, sending them the proposal.</blockquote>
+        
+        <p>In the visualized paxos when an acceptor accepts a value it responds to the proposer so the proposers de facto play the leaner's role.</p>
 
-      <div class="faq">I heard that Paxos uses leader to serialize the updates and leader election to be fault-tolerance. How does the visualization work without leader?</div>
+      <div class="faq">I heard that Paxos uses a) leader to serialize the updates and b) leader election to be fault-tolerance. How does the visualization work without the leader?</div>
 
-        <p>Leadership isn't an essential part of the paxos system (Synod protocol). The protocol still guarantees safety even if each proposer "thinks" that it is a leader. Leadership is an optimization which works when the leader is stable and it reduces the number of roundtrips from 2 to 1 and the significally reduces the risk of self terminated concurrent updates.</p>
+        <p>Leadership isn't an essential part of any paxos system (Synod protocol). Even if each proposer "thinks" that it is a leader then the protocol still guarantees safety. Leadership is an optimization reducing the number of roundtrips from 2 to 1 per state transition and making the risk of self terminated concurrent updates lower.</p>
 
-        <p>The idea behind optimisation is simple: let proposer to send the next promise message as part of the current accept message even if the next client hasn't requested the change yet. This change is isomorphic to the original protocol, so it doesn't affect safety. If the updates are come from the same proposer (a leader) then we observe the reduction of roundtrips.</p>
+        <p>The idea behind the optimization is to let proposers send next 'promise' message as a part of the current 'accept' message even if the next client hasn't requested the change yet. This optimization keeps the safety because every execution of the optimized version has the same behavior as some execution of the untouched version so the optimized version also preserves safety.</p>
 
-        <p>Hopefully the same idea can be applied to the Single Decree Paxos without modifications.</p>
+        <p>The optimization works if all proposers cooperate and use one of them as an leader. Usually it is done with one of the gossip protocols.</p>
+
+        <p>I didn't mention the leadership in the post because it isn't essential to the Synod protocol and can be implemented on the next abstraction layer. Hopefully the same idea can be applied to the visualized Single Decree Paxos without modifications.</p>
+
+      <hr>
+
+      <p><b>P.S.</b> Thanks to <a class="link" href="https://twitter.com/gvsmirnov">Gleb Smirnov</a> for a review and helpful suggestions!</p>
     </div></div>
 
     <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>

@@ -568,7 +568,7 @@ var promise_rpc_wait;
 
 var __execute = Fun(hl2("this.execute = function(key, action, msg) {"), Seq([Skip(function (ctx) {
     ctx.__thread.frame_var("key", ctx.key);
-    ctx.__thread.frame_var("msg", new HashVar(ctx.msg));
+    ctx.__thread.frame_var("msg", ctx.msg);
 }), Statement2("var ballot = 100*(++this.n) + this.proposer_id;", function (ctx) {
     ctx.__self.n++;
     ctx.ballot = 100 * ctx.__self.n + ctx.__self.proposer_id;
@@ -623,7 +623,7 @@ var __execute = Fun(hl2("this.execute = function(key, action, msg) {"), Seq([Ski
     ctx.curr = value;
     ctx.__thread.frame_var("curr", icbm_proj(value));
 }), Call2("var next = action(curr, msg);", function (ctx) {
-    return { value: ctx.curr, msg: ctx.msg };
+    return { value: ctx.curr, general: ctx.msg };
 }, function (ctx) {
     return ctx.action;
 }, function (ctx, ret) {
@@ -666,25 +666,25 @@ var __execute = Fun(hl2("this.execute = function(key, action, msg) {"), Seq([Ski
 })]), "};");
 
 var __update = Statement2("this.n = Math.max(this.n, fail.promised_ballot / 100);", function (ctx) {
-    ctx.__self.n = Math.max(ctx.__self.n, ctx.fail.promised_ballot / 100);
+    ctx.__self.n = Math.max(ctx.__self.n, Math.floor(ctx.fail.promised_ballot / 100));
 });
 
 var __proposer = Seq([Nope2("function Proposer(acceptors, proposer_id, n) {"), Shift(Seq([Nope2("this.proposer_id = proposer_id;"), Nope2("this.n = n;"), __execute, Seq([Nope2("this.update_ballot = function(fail) {"), Shift(__update), Nope2("};")])])), Nope2("}")]);
 
-var __sign = Fun(hl2("function sign(value, msg) {"), Seq([Skip(function (ctx) {
+var __sign = Fun(hl2("function sign(value, general) {"), Seq([Skip(function (ctx) {
     ctx.value = JSON.parse(JSON.stringify(ctx.value));
     ctx.__thread.frame_var("value", icbm_proj(ctx.value));
-    ctx.__thread.frame_var("msg", new HashVar(ctx.msg));
-}), Statement2("value.signs[msg.general] = true;", function (ctx) {
-    if (!ctx.value.signs[ctx.msg.general]) {
-        ctx.value.signs[ctx.msg.general] = true;
+    ctx.__thread.frame_var("general", ctx.general);
+}), Statement2("value.signOffs[general] = true;", function (ctx) {
+    if (!ctx.value.signOffs[ctx.general]) {
+        ctx.value.signOffs[ctx.general] = true;
         ctx.value.len += 1;
         ctx.__thread.frame_var("value", icbm_proj(ctx.value));
     }
-}), Cond("len(value.signs) == 2", function (ctx) {
+}), Cond("len(value.signOffs) == 2", function (ctx) {
     return ctx.value.len == 2;
-}, Seq([Statement2("value.signed = true;", function (ctx) {
-    ctx.value.signed = true;
+}, Seq([Statement2("value.isSent = true;", function (ctx) {
+    ctx.value.isSent = true;
     ctx.__thread.frame_var("value", icbm_proj(ctx.value));
 })])), Return2("return value;", function (ctx) {
     return ctx.value;
@@ -695,26 +695,26 @@ function icbm_proj(value) {
         return value;
     }
     return [{
-        signs: new HashVar(value.signs),
-        signed: JSON.stringify(value.signed)
+        signOffs: new HashVar(value.signOffs),
+        isSent: JSON.stringify(value.isSent)
     }];
 }
 
-var __unsign = Fun(hl2("function unsign(value, msg) {"), Seq([Skip(function (ctx) {
+var __unsign = Fun(hl2("function unsign(value, general) {"), Seq([Skip(function (ctx) {
     ctx.__thread.frame_var("value", icbm_proj(ctx.value));
-    ctx.__thread.frame_var("msg", new HashVar(ctx.msg));
+    ctx.__thread.frame_var("general", ctx.general);
 }), Cond("value == null", function (ctx) {
     return ctx.value == null;
-}, Seq([Statement2("value = {signs: {}, signed: false};", function (ctx) {
-    ctx.value = { signs: {}, signed: false, len: 0 };
+}, Seq([Statement2("value = {signOffs: {}, isSent: false};", function (ctx) {
+    ctx.value = { signOffs: {}, isSent: false, len: 0 };
     ctx.__thread.frame_var("value", icbm_proj(ctx.value));
 })])), Skip(function (ctx) {
     ctx.value = JSON.parse(JSON.stringify(ctx.value));
-}), Cond("!value.signed", function (ctx) {
-    return !ctx.value.signed;
-}, Seq([Statement2("delete value.signs[msg.general];", function (ctx) {
-    if (ctx.value.signs.hasOwnProperty(ctx.msg.general)) {
-        delete ctx.value.signs[ctx.msg.general];
+}), Cond("!value.isSent", function (ctx) {
+    return !ctx.value.isSent;
+}, Seq([Statement2("delete value.signOffs[general];", function (ctx) {
+    if (ctx.value.signOffs.hasOwnProperty(ctx.general)) {
+        delete ctx.value.signOffs[ctx.general];
         ctx.__thread.frame_var("value", icbm_proj(ctx.value));
         ctx.value.len -= 1;
     }
@@ -724,32 +724,32 @@ var __unsign = Fun(hl2("function unsign(value, msg) {"), Seq([Skip(function (ctx
 
 var client_loop = Seq([While2("while (true) {", function (ctx) {
     return true;
-}, Seq([TryCatch2("try {", Seq([Call("var launch = proposer.execute(\"ICBM\", unsign, {\n " + "  general: name\n" + "});", function (ctx) {
+}, Seq([TryCatch2("try {", Seq([Call("var x = proposer.execute(\"ICBM\", unsign, name);", function (ctx) {
     return {
         key: "ICBM",
         action: __unsign,
-        msg: { general: ctx.general_name },
+        msg: ctx.general_name,
         __self: ctx.proposer
     };
 }, __execute, function (ctx, ret) {
-    ctx.launch = ret;
-    ctx.__thread.frame_var("launch", icbm_proj(ret));
-}), Cond("launch.signed", function (ctx) {
-    return ctx.launch.signed;
+    ctx.x = ret;
+    ctx.__thread.frame_var("x", icbm_proj(ret));
+}), Cond("x.isSent", function (ctx) {
+    return ctx.x.isSent;
 }, Seq([Statement2("console.info(\"LAUNCHED!\");", function (ctx) {
     console.info("LAUNCHED");
-})]), Seq([Call("launch = proposer.execute(\"ICBM\", sign, {\n " + "  general: name\n" + "});", function (ctx) {
+})]), Seq([Call("x = proposer.execute(\"ICBM\", sign, name);", function (ctx) {
     return {
         key: "ICBM",
         action: __sign,
-        msg: { general: ctx.general_name },
-        __self: prososer_a
+        msg: ctx.general_name,
+        __self: ctx.proposer
     };
 }, __execute, function (ctx, ret) {
-    ctx.launch = ret;
-    ctx.__thread.frame_var("launch", icbm_proj(ret));
-}), Statement2("console.info(launch.signed?\"LAUNCHED\":\"STEADY\");", function (ctx) {
-    console.info(ctx.signed ? "LAUNCHED" : "STEADY");
+    ctx.x = ret;
+    ctx.__thread.frame_var("x", icbm_proj(ret));
+}), Statement2("console.info(x.isSent ? \"LAUNCHED\":\"STEADY\");", function (ctx) {
+    console.info(ctx.isSent ? "LAUNCHED" : "STEADY");
 })]))]), "} catch(e) {", function (ctx, obj) {
     ctx.e = obj;
 }, Seq([Statement2("console.info(e);", function (ctx) {
@@ -1280,12 +1280,12 @@ DBView = React.createClass({
                 var value = null;
                 if (acceptor.accepted[key].value != null) {
                     var signs = [];
-                    for (var general in acceptor.accepted[key].value.signs) {
+                    for (var general in acceptor.accepted[key].value.signOffs) {
                         signs.push(general);
                     }
                     value = [{
-                        signs: signs,
-                        signed: acceptor.accepted[key].value.signed
+                        signOffs: signs,
+                        isSent: acceptor.accepted[key].value.isSent
                     }];
                 }
 
@@ -1456,12 +1456,12 @@ var HashVar = require("../../stepbystep/model").HashVar;
 module.exports = function (value) {
     if (value != null) {
         var signs = [];
-        for (var general in value.signs) {
+        for (var general in value.signOffs) {
             signs.push(general);
         }
         return [{
-            signs: signs,
-            signed: value.signed
+            signOffs: signs,
+            isSent: value.isSent
         }];
     }
 

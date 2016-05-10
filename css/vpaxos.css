@@ -67,14 +67,34 @@
 }
 
 
+#visualization {
+    text-align: center;
+}
+
+#paxos-placeholder {
+    display: inline-block;
+}
+
+#visualization .data-area {
+    max-width: 350px !important;
+    min-width: 350px !important;
+    width: 350px !important;
+}
+
+
 .vpaxos .brim p {
     margin-top: 0.5em;
 }
 .vpaxos .brim blockquote {
     margin-top: 0.5em;
+    margin-left: 1em;
+    border-left-width: 0.5em;
+    border-left-style: solid;
+    padding-left: 0.4em;
 }
 .vpaxos .brim .faq {
     margin-top: 0.5em;
+    font-weight: bold;
 }
 
 
