@@ -85,7 +85,7 @@
 .vpaxos .brim p {
     margin-top: 0.5em;
 }
-.vpaxos .brim blockquote {
+.vpaxos .brim .quote {
     margin-top: 0.5em;
     margin-left: 1em;
     border-left-width: 0.5em;
