@@ -1,5 +1,12 @@
 /* raft-paxos */
 
+.raft-paxos .brim .twitter-tweet {
+    margin-top: 1em !important;
+    margin-bottom: 1 !important;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .raft-paxos .brim h3 {
     text-align: center;
     font-size: 1.3em;
