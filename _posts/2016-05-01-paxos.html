@@ -108,9 +108,19 @@ private: true
 
       <h5>FAQ</h5>
 
-      <p>The Paxos Made simple describe the Proposer's, Acceptor's and Leaner's roles in a Paxos system but the visualization uses only the first two. How does it work without Leaners?</p>
+      <div class="faq">The Paxos Made Simple paper describes the proposer's, acceptor's and leaner's roles in a Paxos system but the visualization uses only the first two. How does it work without leaners?</div>
 
-      <p>I heard that Paxos uses leader to serialize the updates and leader election to be fault-tolerance. How does the visualization work without Leader?</p>
+        <p>Leslie Lamport wrote</p>
+        <blockquote>The obvious algorithm is to have each acceptor, whenever it accepts a proposal, respond to all learners, sending them the proposal</blockquote>
+        <p>In the visualization's version of paxos when an acceptor accepts a value it responds to the proposer so the proposers de facto play the leaner's role also.</p>
+
+      <div class="faq">I heard that Paxos uses leader to serialize the updates and leader election to be fault-tolerance. How does the visualization work without leader?</div>
+
+        <p>Leadership isn't an essential part of the paxos system (Synod protocol). The protocol still guarantees safety even if each proposer "thinks" that it is a leader. Leadership is an optimization which works when the leader is stable and it reduces the number of roundtrips from 2 to 1 and the significally reduces the risk of self terminated concurrent updates.</p>
+
+        <p>The idea behind optimisation is simple: let proposer to send the next promise message as part of the current accept message even if the next client hasn't requested the change yet. This change is isomorphic to the original protocol, so it doesn't affect safety. If the updates are come from the same proposer (a leader) then we observe the reduction of roundtrips.</p>
+
+        <p>Hopefully the same idea can be applied to the Single Decree Paxos without modifications.</p>
     </div></div>
 
     <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>

@@ -70,6 +70,14 @@
 .vpaxos .brim p {
     margin-top: 0.5em;
 }
+.vpaxos .brim blockquote {
+    margin-top: 0.5em;
+}
+.vpaxos .brim .faq {
+    margin-top: 0.5em;
+}
+
+
 .vpaxos .brim .edge {
     margin-top: 0 !important;
 }
