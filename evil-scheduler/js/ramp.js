@@ -1155,6 +1155,7 @@ module.exports.proposer = make_core(wrap_put(__put_all, has_thread, is_open_by_u
 
 ////////////////////////////////////////////////////////////
 
+
 module.exports.ticked = function (thread) {
     has_thread = {
         put: is_called_from(thread.ctx, __put_all),
