@@ -18,9 +18,11 @@ has_comments: true
 <a href="{{ site.url }}/files/dynamic-plain-paxos.pdf">http://rystsov.info/files/dynamic-plain-paxos.pdf</a></p>
 </div>
 
-<h2>Reflections</h2>
+<h2>Please don't read this paper, the proposed solution doesn't fit real world because it reduces node failure tolerance while changing membership, there're algorithms with better operating characteristics (Vertical Paxos, Raft's joint consensus)</h2>
 
-In theory Paxos is very simple algorithm but in practice it is very hard to do it right. Partially it happens because the original paper omits non-essential sub-problems like:
+<p>But I encourage you to take a look on the <a class="link" href="http://rystsov.info/2016/01/05/raft-paxos.html">Best of both worlds: Raft's joint consensus + Single Decree Paxos</a> post where I described how to apply Raft's joint consensus to Single Decree Paxos (Synod). It's worth reading because some systems don't require the distibuted log abstraction so it's excessive to introduce it just to solve the membership change problem.</p>
+
+<!--In theory Paxos is very simple algorithm but in practice it is very hard to do it right. Partially it happens because the original paper omits non-essential sub-problems like:
  
  1. generation of ballot numbers
  2. leader election
@@ -41,3 +43,4 @@ I believe that we, engineers, must fight complexity every moment. So when I real
 *I used an old fashioned way to prove the correctness of the algorithm and I'm pretty sure about the proof but I can't exclude a possibility of mistake. Of cause I asked a couple of my smart friends to review the proof and they also didn't find any flow. But it would be better if more people would try to compromise it.*
 
 In the upcoming posts I want to demonstrate how to design distributed systems around Dynamic Plain Paxos instead of Multi-Paxos and to create a TLA+ spec.
+-->
