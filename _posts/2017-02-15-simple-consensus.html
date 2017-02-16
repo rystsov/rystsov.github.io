@@ -1,0 +1,376 @@
+---
+layout: page
+title: "In search of a simple consensus algorithm"
+name: "In search of a simple consensus algorithm"
+tags: ["pre_distr"]
+desc: "The modern landscape of consensus protocols is dominated by Raft; despite being understandable it isn't simple and has performance penalty. The post focuses on an alternative which has better performance characteristics and is simple enough to be implemented in 500 lines of code"
+has_comments: true
+ignore_css: true
+marker: sdp
+sdp: true
+---
+
+<div class="column">
+  <div class="sdp">
+    <div class="menu">
+      <span class="home"><a href="{{ site.url }}/">Home</a></span>
+    </div>
+
+    <div class="brim header"><div class="content">
+      <h2>In search of a simple consensus algorithm</h2>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">It seems that industry reached consensus on consensus:</p>
+
+      <ul>
+        <li>It isn't an easy task to create Paxos-based systems. The Googlers behind the <a class="link" href="http://research.google.com/archive/paxos_made_live.html">Paxos Made Live</a> paper write: 
+        
+        <blockquote>Despite the existing literature in the field, building such a database <span class="author">(Paxos-based)</span> proved to be non-trivial.</blockquote>
+
+        </li>
+        
+        <li><a class="link" href="https://raft.github.io/raft.pdf">Raft</a> is a way more understandable algorithm battle-tested in such products as Etcd, CockroachDB, RethinkDB and TiDB.</li>
+      </ul>
+
+      <p>It isn't obvious. Despite being understandable, Raft is a complex protocol<a class="link" href="https://www.cockroachlabs.com/blog/consensus-made-thrive/">[1]</a><a class="link" href="https://www.quora.com/Is-Raft-successful-in-its-goal-of-being-more-understandable-than-Paxos/answer/Ronald-Duncan">[2]</a> which has performance penalty when a leader is unstable.</p>
+
+      <p>In this post:</p>
+
+      <ul>
+        <li>covered an availability limitation of the Raft protocol</li>
+        <li>demonstrated that modern implementations of Raft are subject to it</li>
+        <li>described an existing simpler approach to the problem of consensus</li>
+        <li>showed that its toy 500-lines implementation has performance similar to Etcd but doesn't suffer from Raft's performance penalty</li>
+      </ul>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>Raft's instability</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">Raft is an algorithm which describes how to build a replicated consistent fault-tolerant log. It uses such building blocks as:</p>
+
+      <ul>
+        <li>Strong leader</li>
+        <li>Leader election</li>
+      </ul>
+
+      <img class="vert" src="{{ site.url }}/images/philosoraftor.png"/>
+
+      <p class="vert">
+        Philosoraptor isn't the only one who noticed this fact. The folks behind the <a class="link" href="https://www.cs.cmu.edu/~dga/papers/epaxos-sosp2013.pdf">the EPaxos paper</a> paper asked the same question. They observed that Multi-Paxos has a defect:</p>
+      
+      <blockquote>if the master fails, then the system cannot serve requests until a new master is elected.</blockquote>
+      
+      <p>The same flaw affects Raft. The reason why EPaxos paper doesn't mention it is because the Raft and EPaxos papers were published in the same year.</p>
+    </div></div>
+
+    <div class="brim alt comparison1"><div class="content">
+      <p class="edge">
+        I picked four modern Raft-based distributed systems (Etcd, CockroachDB, RethinkDB &amp; TiKV) and tested them with default settings to demonstrate that they all are affected by the mentioned issue.
+      </p>
+
+      <table class="isolation1">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Crashed leader</th>
+            <th>Isolated leader</th>
+            <th>Version</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="title"><a href="https://github.com/coreos/etcd">Etcd</a></td>
+            <td>2s</td>
+            <td>2s</td>
+            <td>3.1.0 (8ba2897)</td>
+          </tr>
+          <tr>
+            <td class="title"><a href="https://github.com/rethinkdb/rethinkdb">RethinkDB</a></td>
+            <td>0.6s</td>
+            <td>15s</td>
+            <td>rethinkdb 2.3.5~0xenial (GCC 5.3.1)</td>
+          </tr>
+          <tr>
+            <td class="title"><a href="https://github.com/cockroachdb/cockroach">CockroachDB</a></td>
+            <td>12s</td>
+            <td>10s</td>
+            <td>beta-20170223</td>
+          </tr>
+          <tr>
+            <td class="title"><a href="https://github.com/pingcap/tidb">TiDB</a></td>
+            <td>18s</td>
+            <td>2m 40s <a class="link" href="https://github.com/pingcap/tidb/issues/2676">Bug</a></td>
+            <td>pd: f5744d7<br>tikv: eb185b3<br>tidb: a8d185d</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <dl>
+        <dt>Crashed leader</dt>
+        <dd>a case when I stopped a leader with "kill -9"</dd>
+        <dt>Isolated leader</dt>
+        <dd>a case when I isolated a leader with iptables</dd>
+        <dt>Time interval</dt>
+        <dd>a duration of unavailability when no one node of storage was able to serve requests</dd>
+      </dl>
+
+      <p>I tested the systems with default settings on a 4-nodes cluster. Three nodes hosted storage, and the 4th was a client.</p>
+
+      <p>A client used three coroutines, each of them opened a connection to its dedicated node of a storage and were executing the following loop:</p>
+
+      <ol>
+        <li>read a value by a key</li>
+        <li>if the wasn't set then use 0</li>
+        <li>increment the value</li>
+        <li>write it back</li>
+        <li>increment a number of successful iterations</li>
+        <li>repeat the loop</li>
+      </ol>
+
+      <p>Each coroutine used its own key to avoid collisions. If there was an error during the loop, then it closed the current connection, opened a new one and began next iteration of the loop.</p>
+
+      <p>Once in a second (100ms in the case of 10x) the app dumped the number of successful iterations since the last dump per cluster and each node. Such simple metrics helped to analyze a behavior of a cluster when a leader was disturbed.</p>
+
+      <p>I picked a leader empirically as a node with the highest rate of successful iterations.</p>
+
+      <table class="logboard">
+        <tr>
+          <td>
+<div class="title">Etcd (10x)</div>
+<pre>
+261 51 16 16 19
+262 44 14 13 17</pre>
+          </td>
+          <td>
+<div class="title">RethinkDB (10x)</div>
+<pre>
+175 74 23 23 28
+176 72 22 21 29</pre>
+          </td>
+          <td>
+<div class="title">CockroachDB</div>
+<pre>
+146 489 217 134 138
+147 512 234 133 145</pre>
+          </td>
+          <td>
+<div class="title">TiDB</div>
+<pre>
+498 426 120 171 135
+499 436 126 171 139</pre>
+          </td>
+        </tr>
+      </table>
+
+      <dl>
+        <dt>1st column of a storage's subtable</dt>
+        <dd>nth second of the experiment</dd>
+        <dt>2nd</dt>
+        <dd>number of successful iterations per last second per all nodes</dd>
+        <dt>3rd</dt>
+        <dt>4th</dt>
+        <dt>5th</dt>
+        <dd>number of successful iterations per second per 1st (2nd or 3rd) node</dd>
+      </dl>
+
+      <p>In the case of Etcd and RethinkDB the 3rd node is the leader, in the case of CockroachDB it's the 1st node and with TiDB it's the 2nd. Let's kill a leader and see how it affects the health of the cluster.</p>
+
+      <table class="logboard">
+        <tr>
+          <td>
+<div class="title">Etcd (10x)</div>
+<pre>
+266 39 13 12 14
+267  4  1  1  2
+268  0  0  0  0
+...
+286  0  0  0  0
+287 23 13 10  0
+288 28 15 13  0</pre>
+          </td>
+          <td>
+<div class="title">RethinkDB (10x)</div>
+<pre>
+179 68 21 21 26
+180 61 20 19 22
+181  0  0  0  0
+...            
+186  0  0  0  0
+187 41 23 18  0
+188 42 23 19  0</pre>
+          </td>
+          <td>
+<div class="title">CockroachDB</div>
+<pre>
+150 549 250 143 156
+151 410 186 109 115
+152   0   0   0   0
+...
+161   0   0   0   0
+162 106   0 106   0
+163 221   0 167  54
+164 310   0 188 122</pre>
+          </td>
+          <td>
+<div class="title">TiDB</div>
+<pre>
+501 476 134 192 150
+502 133  37  54  42
+503   0   0   0   0
+...
+517   0   0   0   0
+518  57  56   0   1
+519 211 146   0  65
+520 294 163   0 131</pre>
+          </td>
+        </tr>
+      </table>
+
+      <p>You can see that the duration of the unavailability windows corresponds to the data provided in the first table.</p>
+
+      <p>For more information see <a class="link" href="https://github.com/rystsov/perseus">the tests repository</a>.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>Leaderless consensus algorithms</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">One may think that since all the tested systems are affected by this issue then probably it's inevitable for all the consensus protocols.</p>
+
+      <p>Luckily, it isn't true. Epaxos is an example of a leaderless consensus protocol, but it isn't the only one - it's pretty easy to come up with a design of a "leaderless" system built on top of known battle-tested ideas.</p>
+
+      <p>For example, instead of using a distributed log as an <a class="link" href="https://msdn.microsoft.com/en-us/library/dn589792.aspx">Event Sourcing</a> backend for building a key/value storage as an interpretation of an ordered stream of updates we can run a distributed log instance per key. It distributes different leaders across different nodes to achieve the same effect as a leaderless consensus does: a failure of one node doesn't affect the unavailability of the whole cluster.</p>
+
+      <p>A log per key looks like overkill. Hopefully, we have a simpler alternative: Single Decree Paxos (Synod). Multi-Paxos (a log) is an abstraction on top of an array of write-once registers implemented with the Single Decree Paxos algorithm, but nothing prevents us from using the same algorithm to build a rewritable register. Once we have it then creating a key/value storage becomes a trivial task since a key/value storage is by definition is a tagged set of rewritable registers.</p>
+
+      <img class="vert" src="{{ site.url }}/images/family.jpg"/>
+
+      <p class="vert">As far as I know, there isn't a computer science paper dedicated solely to the topic of building a rewritable register on top Single Decree Paxos. But the idea is known both in the industry (see <a class="link" href="http://treode.github.io/design/">TreodeDB</a>) and in academia (<a class="link" href="https://twitter.com/heidiann360">Heidi Howard</a>, Cambridge Ph.D. student, described it in her <a class="link" href="https://www.youtube.com/watch?v=s8JqcZtvnsM">presentation</a> and going to cover in the Ph.D. thesis).</p>
+
+      <p>I practiced logic and proved it in the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a> post, but the proof wasn't peer reviewed so use it at your risk :) However, it was enough for me, so I built <a class="link" href="https://github.com/gryadka/js">Gryadka</a>, a toy key/value storage of 500 line of code, and extensively tested it with the fault injection technique.</p>
+
+      <p>Besides the consistency testing, I measured the unavailability window by using the same method I used with Etcd, CockroachDB, RethinkDB and TiDB. Since Gryadka is based on a leaderless (multi-leader) consensus protocol it demonstrated zero downtime both when a node was crashed and when it was isolated.</p>
+
+      <table class="logboard">
+        <tr>
+          <td>
+<div class="title">Gryadka (crash)</div>
+<pre>
+182 435 147 143 145
+183 435 146 144 145
+184 412 116 148 148
+185 296   0 149 147
+186 309   0 154 155
+187 289   0 145 144</pre>
+          </td>
+          <td>
+<div class="title">Gryadka (isolation)</div>
+<pre>
+94 465 152 156 157
+95 455 151 149 155
+96 453 143 154 156
+97 318   0 157 161
+98 292   0 144 148
+99 290   0 144 146</pre>
+          </td>
+        </tr>
+      </table>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>Performance</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">It's interesting to compare performance of Gryadka with an acknowledged solution, so I chose Etcd.</p>
+
+      <p>Both systems were tested on a 4-nodes cluster (3 nodes for storage + 1 client) and demonstrated similar results:</p>
+
+      <table class="performance1">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Avg Latency</th>
+            <th>Max Latency</th>
+            <th>Requests/sec</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="title"><a href="https://github.com/coreos/etcd">Etcd</a></td>
+            <td>1.55ms</td>
+            <td>19.53ms</td>
+            <td>5227.69</td>
+          </tr>
+          <tr>
+            <td class="title"><a href="https://github.com/gryadka/js">Gryadka</a></td>
+            <td>1.68ms</td>
+            <td>28.53ms</td>
+            <td>4720.19</td>
+          </tr>
+        </tbody>
+      </table>
+    </div></div>
+
+    <div id="sdp5" class="brim"><div class="content">
+      <h5>How were systems tested?</h5>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">The systems were tested with a similar workload: 8 threads/coroutines, each in a loop reads a value (by its own key to avoid collisions), increments it and writes back.</p>
+
+      <p>Usually, linearized reads and linearized writes have similar characteristics, so the statistics aggregate requests of both type and you should treat 4720rps roughly as 2360 reads and 2360 writes per second, the same applies to the latency parts too.</p>
+
+      <p>I used <a class="link" href="https://github.com/wg/wrk">wrk</a> with custom lua scripts to test Etcd. Gryadka was tested with a javascript client with async/await-based coroutines.</p>
+
+      <p>Etcd was tested with the default parameters. Gryadka doesn't have parameters to tune but the underneath Redis instances were configured to use AOF persistence mode and to flush data to the disk after every request.</p>
+
+      <p>Despite the similarities in the workload some other aspects of the experiments, like client-server topology, were different. Etcd's client was talking only with a leader who in its own turn propagates the changes to the followers. Gryadka's client was acting as a proposer and was directly communicating with all the Redis instances.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>Complexity</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">Complexity has formal and informal definitions. Let's see how different interpretations of complexity align with Single-Decree Paxos.</p>
+
+      <blockquote>In algorithmic information theory, the <a class="link" href="https://en.wikipedia.org/wiki/Kolmogorov_complexity">Kolmogorov complexity</a> of an object, such as a piece of text, is the length of the shortest computer program (in a predetermined programming language) that produces the object as output.</blockquote>
+
+      <p>When it is applied to the algorithms, it means that an algorithm with the shortest implementation is simpler.</p>
+      
+      <p>In the <a class="link" href="http://aosabook.org/en/index.html#500lines">500 Lines or Less</a> book Dustin J. Mitchell writes about Multi-Paxos:</p>
+
+      <blockquote>In early drafts of this implementation, I implemented support for membership changes. This seemingly simple change introduced a great deal of complexity ... The result was far too large for this book!</blockquote>
+
+      <p>Gryadka has less than 500 lines of code but supports membership change, so Single Decree Paxos seems simpler than Multi-Paxos.</p>
+
+      <p>An intuitive perception of complexity correlates with the number of parts: the more parts a jigsaw puzzle has, the more complex it is. Tobias Schottdorf from Cockroach Labs <a class="link" href="https://www.cockroachlabs.com/blog/consensus-made-thrive/">admits</a> several concerns in implementing Raft algorithm, among them are log truncation and snapshotting. Single Decree Paxos isn't a log based, so it doesn't have such parts and hence may be simpler than Raft.</p>
+
+      <p>Complexity can be subjective e.g. if something is hard, if it takes a lot of time or effort then it seems complex. Ronald Duncan <a class="link" href="https://www.quora.com/Is-Raft-successful-in-its-goal-of-being-more-understandable-than-Paxos/answer/Ronald-Duncan">writes</a> about his experience of implementing Raft that it wasn't easy and took several months. The same I can tell about Gryadka.</p>
+
+      <p>I planned to finish it in a couple of days, but the whole endeavor lasted a couple of months, the first version has consistency issues, so I had to mock the network and to introduce fault injections to catch the bugs. So it seems that from the position of subjective complexity both algorithms are sophisticated.</p>
+
+      <p>Single Decree Paxos seems simpler than Raft and Multi-Paxos but remains complex enough to spend months of weekends in chasing consistency.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>Conclusion</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">In this post I've demonstrated that Single Decree Paxos is simpler than Multi-Paxos &amp; Raft and can be used for building strongly consistent replicated applications.</p>
+
+      <p>A straightforward Single Decree Paxos based key value implementation has latency and throughput similar to Etcd, a popular Raft implementation, but has better resilience among Etcd CockroachDB, RethinkDB, and TiDB.</p>
+
+      <p>Hence Single Decree Paxos effectively achieves the goals set in the EPaxos paper:</p>
+
+      <blockquote>(1) optimal commit latency in the wide-area when tolerating one and two failures, under realistic conditions; (2) uniform load balancing across all replicas (thus achieving high throughput); and (3) graceful performance degradation when replicas are slow or crash.</blockquote>
+    </div></div>
+  </div>
+</div>
