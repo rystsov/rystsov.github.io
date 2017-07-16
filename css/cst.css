@@ -1,0 +1,207 @@
+.cst .header {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+.cst .brim {
+    padding-left: 0.7em;
+    padding-right: 0.7em;
+}
+
+.cst .brim h2 {
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.cst .brim h4 {
+    text-align: left;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 0.5em;
+}
+
+.cst .brim h5 {
+    text-align: left;
+    font-size: 1em;
+    font-weight: bold;
+    margin-top: 0.5em;
+}
+
+.cst .brim p {
+    margin-top: 0.5em;
+}
+
+.cst .brim .strikethrough {
+    text-decoration: line-through;
+}
+
+.cst .brim blockquote {
+    margin-top: 0.5em;
+    margin-left: 1em;
+    border-left-width: 0.5em;
+    border-left-style: solid;
+    padding-left: 0.4em;
+}
+
+.cst .brim li blockquote {
+    margin-left: 0em;
+}
+
+.cst .brim dl {
+    margin-top: 0.5em;
+}
+
+.cst .brim dl dd {
+    padding-left: 2em;
+}
+
+.cst .brim dl dt {
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.cst .brim .edge {
+    margin-top: 0 !important;
+}
+
+.cst .brim .link {
+    background: yellow;
+    color: black;
+    text-decoration: none;
+}
+
+.cst .brim .title a {
+    color: black;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.cst .brim pre {
+    font-family: monospace;
+}
+
+.cst .brim ul {
+    margin-top: 0.5em;
+    padding-left: 2em;
+    list-style-type: square;
+}
+
+.cst .brim ul li {
+    line-height: 1.3em;
+    margin-top: 0.4em;
+}
+
+.cst .brim ol {
+    margin-top: 0.5em;
+    padding-left: 2em;
+    list-style-type: square;
+    list-style-type: decimal;
+}
+
+.cst .brim ol li {
+    line-height: 1.3em;
+    margin-top: 0.4em;
+}
+
+.cst .brim img {
+    margin-top: 0.5em;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.cst .brim .vert {
+    margin-top: 2em;
+}
+
+.cst .alt {
+    background-color: #EEFFEE;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+.cst .comparison1 {
+    margin-top: 0.5em;
+}
+
+
+.cst .brim .isolation1 {
+    margin-top: 0.5em;
+}
+
+.cst .brim .isolation1 td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+
+.cst .brim .isolation1 th {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.cst .brim .performance1 .title {
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.cst .brim .performance1 {
+    margin-top: 0.5em;
+}
+
+.cst .brim .performance1 td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+
+.cst .brim .performance1 th {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.cst .brim .performance1 .title {
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.cst .brim .logboard h4 {
+    text-align: left;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 0em;
+}
+
+.cst .brim .logboard {
+    margin-top: 0.5em;
+}
+
+.cst .brim .logboard td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+
+.cst .brim .logboard .title {
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.cst .brim .logboard .author {
+    font-style: italic;
+}
+
+.cst .qed {
+    font-weight: bold;
+    font-size: 110%;
+    margin-left: auto;
+    width: 4em;
+    margin-top: 0.7em;
+}
+
+.cst .brim .gist {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}

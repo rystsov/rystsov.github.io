@@ -1,0 +1,147 @@
+---
+layout: page
+title: "Old fast linearizability check"
+name: "Old fast linearizability check"
+tags: ["pre_distr"]
+desc: "The conventional wisdom of the distributed system community tells that linearizability testing is NP-complete however in some cases it's possible to do it in O(n ln n)"
+has_comments: true
+ignore_css: true
+marker: cst
+cst: true
+private: true
+---
+
+<div class="column">
+  <div class="cst">
+    <div class="menu">
+      <span class="home"><a href="{{ site.url }}/">Home</a></span>
+    </div>
+
+    <div class="brim header"><div class="content">
+      <h2>Old fast linearizability check</h2>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">The conventional wisdom of the distributed system community tells that linearizability testing is NP-complete. In this post I'll demonstrate in some cases it's possible to check linearizability in polynomial time.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>But first what's linearizability?</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">If we oversimplify, linearizability means sanity.</p>
+
+      <p>For example, it's a violation of linearizability (insane situation) when a concurrent map returns freshly inserted data on a single CPU system but stale data on multi CPU.</p>
+
+      <p>The same is true for the distributed storages. If Alice successfully writes a value to a key/value storage, calls Bob via an off-system channel and asks him to read a value then it's sane to expect Bob to read the same value under the condition that there are no other writers. When the system returns something else it's a violation of linearizability.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>What's linearizability testing?</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">It's a process of searching linearizability violations in a black box system claiming to provide it.</p>
+
+      <p>Usually, the process consists of two parts. The first part executes a real world scenario against a system using failure injections and keeps per-client logs of operations (including start time, end time and its result) started by them. The second part digests the logs and checks if there were anomalies during the execution.</p>
+
+      <p>The first part isn't a computer science problem so people in academia focus the second part which is also known as linearizability testing. In this post, I use the academic interpretation.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>Is it hard to do linearizability testing?</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">Alex Horn and Daniel Kroenin write in their paper <a class="link" href="https://arxiv.org/pdf/1504.00204.pdf">Faster linearizability checking via P-compositionality</a>:</p>
+
+      <blockquote>
+         The problem of checking linearizability is NP-complete. This high computational complexity means that writing an efficient linearizability checker is inherently difficult. The problem is to find ways of pruning a huge search space: in the worst case, its size is O(N!)
+      </blockquote>
+
+      <p>Anish Athalye wrote an excellent post <a class="link" href="http://www.anishathalye.com/2017/06/04/testing-distributed-systems-for-linearizability/">Testing Distributed Systems for Linearizability</a> where he proved NP-completeness with a very simple example.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>So, it's mathematically proved that linearizability is a NP-complete problem and you're claiming that it's possible to do it in polynomial time, are you nuts?</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">Not really 😏 In a common use-case a linearizable system can be replaced with a sequentially consistent system with compare-and-set without loss of generality. The latter can be checked with polynomial time.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>What's the common use-case?</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">It's an environment when concurrent clients need to work with strongly consistent distributed key/value storage. The concurrent nature of the clients implies the need for concurrency control mechanisms like compare and set.</p>
+
+      <p>The examples of well-known systems which fit this use case are DocumentDB, ZooKeeper, Etcd, DynamoDB, MongoDB, HBase, CockroachDB, and others.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>Why does sequential consistency with CAS substitute linearizability there?</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">Let's assume that we use CAS for every write. (We don't lose generality here because otherwise even linearizable storage wouldn't prevent certain anomalies like lost update caused by the concurrent clients).</p>
+
+      <p>Then use <a class="link" href="https://en.wikipedia.org/wiki/Sequential_consistency">wiki</a> to revise what the sequential consistency guarantees:</p>
+
+      <blockquote>
+         the result of any execution is the same as if the operations of all the processors were executed in some sequential order, and the operations of each individual processor appear in this sequence in the order specified by its program
+      </blockquote>
+
+      <p>And combine things together: SC linearizes writes, CAS makes sure that they capture causality and the in-process order gives read-you-writes consistency, so the only possible anomaly is the stale reads. Let's fix it by using linearizability or writes to linearize reads:</p>
+
+      {% gist rystsov/48ab8a21d75db2b47b402dac478f13bd %}
+
+      <p>As a result, we found a way to use a sequentially consistent system as a strongly consistent system.</p>
+
+      <p>Of course, it looks expensive to write after reading but:</p>
+
+      <ol>
+        <li>If we read a value only to modify it and write back then we can do a regular read. In that case, the stale data will be caught on the follow up write.</li>
+        <li>Some systems already implement read via write and we don't need to do it on our own. One of the examples is Etcd with "quorum=true" setting.</li>
+      </ol>
+
+      <p>Now let's return to the question how to test that a system is sequentially consistent.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>How to do sequential consistency check in polynomial time?</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">Phillip B. Gibbons and Ephraim Korach explored the complexity of the linearizability testing in their paper <a class="link" href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.107.3013&rep=rep1&type=pdf">Testing shared memories</a>. They noticed that when read-mapping and a write-order are provided the problem jumps into O(n ln n) complexity class.</p>
+
+      <p>What is read-mapping? It is a situation when for each read operation, it is known precisely which write wrote that value.</p>
+
+      <p>What is write-order? There is a total order on the write operations which resolves ambiguity when writes overlap. So for any two writes it's known which happened before another.</p>
+
+      <p>Hopefully, those restrictions aren't exotic, if we use CAS for every write then the above conditions are satisfied.</p>
+
+      {% gist rystsov/4868d408cf4965051761fd50e4468d0b %}
+
+      <p>Indeed, we can say which write is responsible for a given read - we just need to take a look on the etag field of the read record and pick a write with the same value of its etag record. Also, the prevEtag field defines a total order on the writes so we have the write-order too.</p>
+    </div></div>
+
+    <div class="brim header"><div class="content">
+      <h4>Wait a minute, doesn't it prove that linearizability testing is O(n ln n)?</h4>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">Not really, the problem hides behind DateTime.now(), we need it to return absolute time but it's physically impossible. A distributed system is a physical system and follows the laws of nature. Since there is no absolute time in real word then we can't guarantee that DateTime.now() would yield it.</p>
+
+      <p>It looks like a failure but the "Testing shared memories" paper has another result: when we know read-mapping and write-order the problem of sequential consistency also jumps into O(n ln n).</p>
+
+      <div class="qed">Q.E.D.</div>
+    </div></div>
+
+    <div class="brim"><div class="content">
+      <p class="edge">In the next post, we'll do impossible and check linearizability in linear time, stay tuned :)</p>
+    </div></div>
+  </div>
+</div>
