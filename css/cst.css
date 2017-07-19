@@ -193,6 +193,16 @@
     font-style: italic;
 }
 
+.cst .brim .it {
+    font-style: italic;
+}
+
+.cst .brim .code {
+    font-family: monospace;
+    margin-left: 0.3em;
+    margin-right: 0.3em;
+}
+
 .cst .qed {
     font-weight: bold;
     font-size: 110%;
