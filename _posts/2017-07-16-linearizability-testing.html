@@ -29,11 +29,11 @@ cst: true
     </div></div>
 
     <div class="brim"><div class="content">
-      <p class="edge">Linearizability is a correctness condition for concurrent objects, in which all executions histories are equivalent to a correct sequential histories, with constraint on a wall-clock time.</p>
+      <p class="edge">Linearizability is a correctness condition for a concurrent system, in which all execution histories are equivalent to a correct sequential history, with a constraint on a wall-clock time (absolute time).</p>
 
-      <p>Linearizability requires that all the data operations appear to have executed atomically in some sequential order that is consistent with a global order (wall-clock time) of non-overlapping operations. (Hagit Attiya and Jennifer L Welch: “Sequential Consistency versus Linearizability,” ACM Transactions on Computer Systems (TOCS), volume 12, number 2, pages 91–122, May 1994. doi:10.1145/176575.176576)</p>
+      <p>It requires that all the data operations appear to have executed atomically in some sequential order that is consistent with a global order (wall-clock time) of non-overlapping operations. <span class="it">Hagit Attiya and Jennifer L Welch: “Sequential Consistency versus Linearizability,” ACM Transactions on Computer Systems (TOCS), volume 12, number 2, pages 91–122, May 1994. doi:10.1145/176575.176576</span></p>
 
-      <p>Fun fact! Linearizability is expensive in distributed systems and in multithreaded programming so both fields have relaxed models :) eventual consistency and out-of-order execution.</p>
+      <p>Fun fact! Linearizability is expensive in distributed systems and in multithreaded programming, so both fields have relaxed models :) eventual consistency and out-of-order execution.</p>
 
       <p>E.g. the JVM's out-of-order execution makes it necessary to explicitly control the visibility of the changes by using such primitives as "volatile" variables. Please read the astonishing post by Aleksey Shipilёv on <a class="link" href="https://shipilev.net/blog/2014/safe-public-construction/">Safe Publication and Safe Initialization in Java</a> for more information, examples of linearizability violations and the ways to prevent it.</p>
 
