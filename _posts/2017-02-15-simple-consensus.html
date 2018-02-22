@@ -252,9 +252,7 @@ sdp: true
 
       <img class="vert" src="{{ site.url }}/images/family.jpg"/>
 
-      <p class="vert">As far as I know, there isn't a computer science paper dedicated solely to the topic of building a rewritable register on top Single Decree Paxos. But the idea is known both in the industry (see <a class="link" href="http://treode.github.io/design/">TreodeDB</a>) and in academia (<a class="link" href="https://twitter.com/heidiann360">Heidi Howard</a>, Cambridge Ph.D. student, described it in her <a class="link" href="https://www.youtube.com/watch?v=s8JqcZtvnsM">presentation</a> and going to cover in the Ph.D. thesis).</p>
-
-      <p>I practiced logic and proved it in the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a> post, but the proof wasn't peer reviewed so use it at your risk :) However, it was enough for me, so I built <a class="link" href="https://github.com/gryadka/js">Gryadka</a>, a toy key/value storage of 500 line of code, and extensively tested it with the fault injection technique.</p>
+      <p>I practiced logic and proved it in the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a> post. Then I built <a class="link" href="https://github.com/gryadka/js">Gryadka</a>, an experimental key/value storage of 500 line of code, and extensively tested it with the fault injection technique. Also Tobias Schottdorf and Greg Rogers independently model checked the protocol with TLA+: <a class="link" href="https://tschottdorf.github.io/single-decree-paxos-tla-compare-and-swap">[1]</a> and <a class="link" href="https://medium.com/@grogepodge/tla-specification-for-gryadka-c80cd625944e">[2]</a>.</p>
 
       <p>Besides the consistency testing, I measured the unavailability window by using the same method I used with Etcd, CockroachDB, RethinkDB and TiDB. Since Gryadka is based on a leaderless (multi-leader) consensus protocol it demonstrated zero downtime both when a node was crashed and when it was isolated.</p>
 
