@@ -37,7 +37,7 @@ marker: hpw
 
 		<p>We can build a distributed state machine and implement any algorithm on top of it. But it's very hard to think about an unbounded domain, so in this post we consider Paxos as a foundation for building distributed data storages.</p>
 
-		<p>It's a common practice for storages to have write operations to mutate its state and read operations to query it. Paxos is different, it guarantees consistency only for write operations, so to query its state the system makes read, writes the state back and when the state change is accepted the system queries the written state.</p>
+		<p>It's a common practice for storages to have write operations to mutate its state and read operations to query it. Paxos is different, it guarantees consistency only for write operations, so to query its state the system makes a read, writes a value back and when the write is confirmed the system returns the value or its projection to a client.</p>
 
 	<blockquote>&gt; Wait, don't pay so much attention to the details, what is the topology of the Paxos-based distributed system?</blockquote>
 
