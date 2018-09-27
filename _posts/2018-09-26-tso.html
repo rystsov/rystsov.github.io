@@ -1,0 +1,176 @@
+---
+layout: page
+title: "Quorum clock: distributed fault tolerant clock"
+name: "Quorum clock: distributed fault tolerant clock"
+tags: ["pre_distr"]
+desc: "TODO"
+has_comments: true
+ignore_css: true
+marker: cst
+cst: true
+private: true
+---
+
+<div class="column">
+  <div class="cst">
+      <div class="menu">
+        <span class="home"><a href="{{ site.url }}/">Home</a></span>
+      </div>
+
+      <div class="brim header"><div class="content">
+        <h2>Quorum clock: distributed fault tolerant clock</h2>
+      </div></div>
+
+      <div class="brim"><div class="content">
+        <p class="edge">Time is a tricky concept. When we happy it fries fast when we wait for something and have nothing to do it goes painfully slow but intuitively we believe it's absolute.</p>
+
+        <p>Physicists abandoned the idea of absolute time at the beginning of XX century and special theory of relativity states that it indeed may go faster or slower for different observers (clocks). Besides that, the theory sets the limit on the speed of signal propagation. So it takes time to sync clocks and hence they can't be in sync.</p>
+
+        <p>The reason why we hadn't noticed it before because the distortion of time is too small compared to the pace of our life.</p>
+
+        <p>But computers changed the speed of information processing so we, software engineers, start to experience the problems, physicists had for the last century.</p>
+
+        <p>When an execution of a program limited by one computer the local timer plays a role of absolute time and we can use our intuitive perception of time to reason about the behavior.</p>
+
+        <p>When a program is distributed we enter the relativity domain and must think like physicists. It may seem like an exaggeration but it very easy to run into time anomalies:</p>
+
+        <ul>
+          <li>World is big and information about local event reaches the other end of Earth ~100ms later so for different observers it happens at a different time even if their clocks are perfectly in sync.</li>
+          
+          <li>Different computers may have different time because of misconfiguration.</li>
+          
+          <li>NTP's accuracy is tens of milliseconds.</li>
+          
+          <li>Time may freeze during live migration caused by security update of yours cloud provider.</li>
+          
+          <li>Heat causes frequency drift and changes the speed of time.</li>
+        </ul>
+
+        <p>There are several techniques for dealing with time in distributed systems. In this post, I focus on TSO.</p>
+
+        <p>TSO stands for timestamp oracle and in its essence, it's just a clock-like service exposing <code>now()</code> method - to get current "timestamp".</p>
+
+        <p>Let's pretend that absolute time exists and use our intuition to write spec:</p>
+
+        <ul>
+          <li><code>now()</code> must return a unique value</li>
+          <li><code>now()</code> returns a value between the moment it was invoked and the moment it returned the result</li>
+        </ul>
+
+        <p>Now rewrite replacing absolute time with the happened-before relation. Each invocation must yield a unique value and if one invocation finished before another started then the former must yield lesser value.</p>
+
+        <p>The simplest implementation of TSO is a counter in a database, a fault-tolerant performant implementation is a completely different beast.</p>
+
+        <p>But before jumping into it, do we really need TSO?</p>
+
+        <p>TSO is a keystone of the Percolator transaction protocol described in the <a class="link" href="https://ai.google/research/pubs/pub36726">Large-scale Incremental Processing Using Distributed Transactions and Notifications</a> paper. To my knowledge, it's the only distributed transaction protocol providing snapshot isolation. <a class="link" href="https://en.wikipedia.org/wiki/Two-phase_commit_protocol">2PC</a> provides serializable and <a class="link" href="http://www.bailis.org/papers/ramp-sigmod2014.pdf">RAMP</a> - read committed isolation level.</p>
+
+        <p>By the way, Percolator is used by the TiDB distributed database. Let's see what they and Google write about TSO:</p>
+
+        <blockquote>
+          "Since every transaction requires contacting the timestamp oracle twice, this service must scale well. The oracle periodically allocates a range of timestamps by writing the highest allocated timestamp to stable storage; given an allocated range of timestamps, the oracle can satisfy future requests strictly from memory. If the oracle restarts, the timestamps will jump forward to the maximum allocated timestamp (but will never go backwards)" <a class="link" href="https://ai.google/research/pubs/pub36726">source</a>
+        </blockquote>
+
+        <blockquote>
+          "The functions of TSO are provided in PD in TiKV. The generation of TSO in PD is purely memory operations and stores the TSO information in etcd on a regular base to ensure that TSO is still monotonic increasing even after PD restarts." <a class="link" href="https://pingcap.com/blog/2016-11-09-Deep-Dive-into-TiKV/">source</a>
+        </blockquote>
+
+        <p>Both systems allocate a range of timestamps from a replicated storage and serve requests from memory to minimize response time.</p>
+
+        <p>Obviously we can't have multiple TSO - if we have two TSO <code>A</code> and <code>B</code>, and <code>A</code> allocated <code>[0,100)</code> and <code>B</code> allocated <code>[100, 200)</code> then when a client requests time from <code>B</code> and then from <code>A</code> she gets lesser value violating the spec. As a consequence, we can't immediately start new TSO when previous failed. If it's a network glitch then the old TSO may be still active and serving requests so we'll double TSO and a possibility of a violation.</p>
+
+        <p>Leases solve the problem: active TSO should ping replicated storage every <code>n</code> seconds and step down if ping doesn't pass, so if new TSO should wait at least for <code>n</code> seconds before starting serving requests everything is fine. But leases have downsides:</p>
+
+        <ul>
+          <li>Implicit coupling via time.</li>
+          <li>Dependency on the speed of local time which may fluctuate e.g. during the live migrations</li>
+        </ul>
+
+        <p>Even if we close our eyes on them we should be accountable for the tradeoff we did - we traded availability during an incident for the latency of the happy case. Sometimes short violations of availability during the incidents are acceptable sometimes aren't but we don't get improved latency for free.</p>
+
+        <p>Personally, as an engineer who is on call rotation, I'd prefer to work with a system which is robust during a disaster. Especially I can easily imagine that a composition of systems may have nonlinear behavior. Say if a minor glitch caused <code>1%</code> of downtime in the <code>A</code> and <code>B</code> systems then the same glitch may cause <code>10%</code> downtime when those systems are combined.</p>
+
+        <p>Also, it's really really hard to reason about non-deterministic behavior (hard not like in "A hard day's night" but like hardly possible). So let's explore if we can design TSO without violating availability when a minor number of nodes are partitioned away.</p>
+
+        <p>The straightforward idea is to go into replicated storage on every request instead of using the cached range.</p>
+
+        <p>But it suffers from the same problem. There are several designs of replicated storage, some are based on the idea of the stable leader and subject to availability loss during re-election. No, it isn't another <a class="link" href="http://rystsov.info/2017/02/15/simple-consensus.html">rant on leader-based consensus</a>. Leaderless variants are also affected: the time (clock) requires only one register and a leader-equivalent is needed to reduce contention if it fails we still are in the same situation.</p>
+
+        <p>Instead of relying on consensus we go earlier in history and use an adaptation of <a class="link" href="https://en.wikipedia.org/wiki/Lamport_timestamps">Lamport clocks</a>.</p>
+
+        <p>Lamport clock is a technique to track dependencies and assign "timestamps" to every event in a system such that if two events are causally related then the earlier has a lesser timestamp. LC doesn't provide uniqueness and out of two unrelated events, the one which happened earlier in absolute time may have a greater timestamp.</p>
+
+        <p>We'll iterate the idea and turn LC into TSO.</p>
+
+        <p>Probably the idea has been described before but I haven't seen it so let's name it Quorum Clock. If you know it under another name, please write in the comments.</p>
+
+        <p>Quorum Clock implements fault-tolerant TSO. The system consists of <code>M</code> time watching stateless nodes (TW), <code>2N+1</code> clock storage nodes (CS) and it's able to tolerate <code>M-1</code> failures of TW nodes and <code>N</code> failures of CS nodes.</p>
+
+        <p>Each time watcher node has a unique id and it's used as a part of the timestamp. Actually, a timestamp is a tuple of stored time and TW's id.</p>
+      </div></div>
+
+      <div class="brim header"><div class="content">
+        <h4>How to generate timestamp?</h4>
+      </div></div>
+      
+      <div class="brim"><div class="content">
+        <ol class="edge">
+          <li>Client randomly selects TW node and asks it for a timestamp.</li>
+          <li>TW node asks CS nodes for their stored time.</li>
+          <li>TW node waits for at least <code>N+1</code> responses.</li>
+          <li>TW node picks maximum among responses, increment by one and sends it back to CS nodes.</li>
+          <li>CS nodes overwrite the current value (if new is greater) and send a confirmation to the TW node.</li>
+          <li>TW node waits for <code>N+1</code> responses, creates (new stored time, TW's id) pair and passes it to the client.</li>
+        </ol>
+
+        <p>When a client wants to compare two timestamps she compares the stored time and if they are equal uses TW's id as a tiebreaker.</p>
+      </div></div>
+
+      <div class="brim header"><div class="content">
+        <h4>Why does it work?</h4>
+      </div></div>
+
+      <div class="brim"><div class="content">
+        <ol class="edge">
+          <li>If one request starts after another finish then there is at least one common CS and later request gets higher stored time by definition.</li>
+          <li>If two requests are concurrent then it doesn't matter which one is earlier and unique TW's id guarantees uniqueness stored time components match.</li>
+        </ol>
+      </div></div>
+
+      <div class="brim header"><div class="content">
+        <h4>Optimizations</h4>
+      </div></div>
+
+      <div class="brim"><div class="content">
+        <p class="edge">If every client has a unique id then clients can play a role of TW nodes and reduce the number of hops by 1 RRT.</p>
+
+        <p>We suppose that CS keeps time in a persistent memory (disk) and updates it on every put. But persistent memory is slow compared to RAM. Let's update the protocol to serve from RAM in most cases.</p>
+
+        <p>To do it we should:</p>
+
+        <ol>
+          <li>Split CS's time into epoch and time.</li>
+          <li>Keep epoch persisted on disk and time in RAM (zero when CS node starts).</li>
+          <li>Increments epoch by one and persist it when CS starts.</li>
+          <li>If put epoch is greater than current epoch overwrite current epoch on disk.</li>
+          <li>Update time only in RAM.</li>
+        </ol>
+
+        <p>Using this optimization all put first put will be served from memory.</p>
+      </div></div>
+
+      <div class="brim header"><div class="content">
+        <h4>Comparation to a consensus based solution</h4>
+      </div></div>
+
+      <div class="brim"><div class="content">
+        <ol class="edge">
+          <li>Same number or hops: consensus counter - client->leader->acceptors->leader->client, and quorum clock - client->CS->client->CS->client.</li>
+          <li>When a leader is partitioned away consensus counter suffers from a short period of unavailability. Quorum clock tolerated isolation of any node without downtime.</li>
+          <li>Quorum clock serves requests from memory without touching the disc.</li>
+        </ol>
+
+        <p>Both solutions don't give the sense of time to an operator making it hard to correlate real-world events with the behavior of the system. Hopefully <a class="link" href="https://cse.buffalo.edu/tech-reports/2014-04.pdf">hybrid logical clock</a> has the same properties as Lamport clock but also include physical time in the timestamp so we can build quorum clock on top of HLC to overcome the correlation issue.</p>
+      </div></div>
+  </div>
+</div>
