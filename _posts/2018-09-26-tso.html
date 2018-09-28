@@ -24,18 +24,16 @@ private: true
       <div class="brim"><div class="content">
         <p class="edge">Time is a tricky concept. When we happy it fries fast when we wait for something and have nothing to do it goes painfully slow but intuitively we believe it's absolute.</p>
 
-        <p>Physicists abandoned the idea of absolute time at the beginning of XX century and special theory of relativity states that it indeed may go faster or slower for different observers (clocks). Besides that, the theory sets the limit on the speed of signal propagation. So it takes time to sync clocks and hence they can't be in sync.</p>
+        <p>Physicists abandoned the idea of absolute time at the beginning of XX century and the theories of relativity state that it indeed may go faster or slower for different observers (clocks). Besides that, the theory sets the limit on the speed of signal propagation. So it takes time to sync clocks and hence they can't be perfectly in sync.</p>
 
-        <p>The reason why we hadn't noticed it before because the distortion of time is too small compared to the pace of our life.</p>
+        <p>The reason why we hadn't noticed this strangeness earlier is because the distortion of time is too small compared to the pace of our life.</p>
 
         <p>But computers changed the speed of information processing so we, software engineers, start to experience the problems, physicists had for the last century.</p>
 
-        <p>When an execution of a program limited by one computer the local timer plays a role of absolute time and we can use our intuitive perception of time to reason about the behavior.</p>
-
-        <p>When a program is distributed we enter the relativity domain and must think like physicists. It may seem like an exaggeration but it very easy to run into time anomalies:</p>
+        <p>When an execution of a program limited by one computer the local timer plays a role of absolute time and we can use our intuitive perception of time to reason about the behavior. But when a program is distributed we enter the relativity domain and must think like physicists. It may seem like an exaggeration but it very easy to run into time anomalies:</p>
 
         <ul>
-          <li>World is big and information about local event reaches the other end of Earth ~100ms later so for different observers it happens at a different time even if their clocks are perfectly in sync.</li>
+          <li>World is big and information about local event reaches the other end of Earth in about 100ms so for different observers it happens at a different time even if their clocks are perfectly in sync.</li>
           
           <li>Different computers may have different time because of misconfiguration.</li>
           
@@ -43,12 +41,12 @@ private: true
           
           <li>Time may freeze during live migration caused by security update of yours cloud provider.</li>
           
-          <li>Heat causes frequency drift and changes the speed of time.</li>
+          <li>Heat causes frequency drift and changes the speed of timer.</li>
         </ul>
 
-        <p>There are several techniques for dealing with time in distributed systems. In this post, I focus on TSO.</p>
+        <p>There are several techniques for dealing with time in distributed systems. In this post, I focus on timestamp oracle (TSO).</p>
 
-        <p>TSO stands for timestamp oracle and in its essence, it's just a clock-like service exposing <code>now()</code> method - to get current "timestamp".</p>
+        <p>TSO, in its essence, is just a clock-like service exposing <code>now()</code> method - to get current "timestamp".</p>
 
         <p>Let's pretend that absolute time exists and use our intuition to write spec:</p>
 
@@ -57,15 +55,21 @@ private: true
           <li><code>now()</code> returns a value between the moment it was invoked and the moment it returned the result</li>
         </ul>
 
-        <p>Now rewrite replacing absolute time with the happened-before relation. Each invocation must yield a unique value and if one invocation finished before another started then the former must yield lesser value.</p>
+        <p>Now rewrite replacing absolute time with the happened-before relation - each invocation must yield a unique value and if one invocation finished before another started then the former must yield lesser value.</p>
 
         <p>The simplest implementation of TSO is a counter in a database, a fault-tolerant performant implementation is a completely different beast.</p>
 
-        <p>But before jumping into it, do we really need TSO?</p>
+        <p>But before jumping into it...</p>
+      </div></div>
 
-        <p>TSO is a keystone of the Percolator transaction protocol described in the <a class="link" href="https://ai.google/research/pubs/pub36726">Large-scale Incremental Processing Using Distributed Transactions and Notifications</a> paper. To my knowledge, it's the only distributed transaction protocol providing snapshot isolation. <a class="link" href="https://en.wikipedia.org/wiki/Two-phase_commit_protocol">2PC</a> provides serializable and <a class="link" href="http://www.bailis.org/papers/ramp-sigmod2014.pdf">RAMP</a> - read committed isolation level.</p>
+      <div class="brim header"><div class="content">
+        <h4>Do we really need TSO?</h4>
+      </div></div>
+      
+      <div class="brim"><div class="content">
+        <p class="edge">TSO is a keystone of the Percolator transaction protocol described in the <a class="link" href="https://ai.google/research/pubs/pub36726">Large-scale Incremental Processing Using Distributed Transactions and Notifications</a> paper. To my knowledge, it's the only distributed transaction protocol providing snapshot isolation. <a class="link" href="https://en.wikipedia.org/wiki/Two-phase_commit_protocol">2PC</a> provides serializable and <a class="link" href="http://www.bailis.org/papers/ramp-sigmod2014.pdf">RAMP</a> - read committed isolation levels.</p>
 
-        <p>By the way, Percolator is used by the TiDB distributed database. Let's see what they and Google write about TSO:</p>
+        <p>By the way, Percolator is used by the TiDB distributed database. Let's see what they and Google write about thier experience:</p>
 
         <blockquote>
           "Since every transaction requires contacting the timestamp oracle twice, this service must scale well. The oracle periodically allocates a range of timestamps by writing the highest allocated timestamp to stable storage; given an allocated range of timestamps, the oracle can satisfy future requests strictly from memory. If the oracle restarts, the timestamps will jump forward to the maximum allocated timestamp (but will never go backwards)" <a class="link" href="https://ai.google/research/pubs/pub36726">source</a>
@@ -77,9 +81,9 @@ private: true
 
         <p>Both systems allocate a range of timestamps from a replicated storage and serve requests from memory to minimize response time.</p>
 
-        <p>Obviously we can't have multiple TSO - if we have two TSO <code>A</code> and <code>B</code>, and <code>A</code> allocated <code>[0,100)</code> and <code>B</code> allocated <code>[100, 200)</code> then when a client requests time from <code>B</code> and then from <code>A</code> she gets lesser value violating the spec. As a consequence, we can't immediately start new TSO when previous failed. If it's a network glitch then the old TSO may be still active and serving requests so we'll double TSO and a possibility of a violation.</p>
+        <p>Obviously we can't have multiple TSO - if we have two TSO: <code>A</code> and <code>B</code>, and <code>A</code> allocated <code>[0,100)</code> and <code>B</code> allocated <code>[100, 200)</code> then when a client requests time from <code>B</code> and then from <code>A</code> she gets lesser value violating the spec. As a consequence, we can't immediately start new TSO when previous failed. If it's a network glitch then the old TSO may be still active and serving requests so we'll double TSO and a possibility of a violation.</p>
 
-        <p>Leases solve the problem: active TSO should ping replicated storage every <code>n</code> seconds and step down if ping doesn't pass, so if new TSO should wait at least for <code>n</code> seconds before starting serving requests everything is fine. But leases have downsides:</p>
+        <p>Leases solve the problem: active TSO should ping replicated storage every <code>n</code> seconds and step down if ping doesn't pass and new TSO should wait at least for <code>n</code> seconds before starting serving requests in this case everything is fine. But leases have downsides:</p>
 
         <ul>
           <li>Implicit coupling via time.</li>
@@ -88,9 +92,9 @@ private: true
 
         <p>Even if we close our eyes on them we should be accountable for the tradeoff we did - we traded availability during an incident for the latency of the happy case. Sometimes short violations of availability during the incidents are acceptable sometimes aren't but we don't get improved latency for free.</p>
 
-        <p>Personally, as an engineer who is on call rotation, I'd prefer to work with a system which is robust during a disaster. Especially I can easily imagine that a composition of systems may have nonlinear behavior. Say if a minor glitch caused <code>1%</code> of downtime in the <code>A</code> and <code>B</code> systems then the same glitch may cause <code>10%</code> downtime when those systems are combined.</p>
+        <p>Personally, as an engineer who is on call rotation, I'd prefer to work with a system which is robust during a disaster. Also it's really hard to think about a combosition of nondeterministic system, hard not like in "A hard day's night" but hard like hardly possible. It's easy to imagine when a minor glitch causes <code>1%</code> of downtime in the <code>A</code> and <code>B</code> systems but <code>10%</code> of downtime when the systems are combined.</p>
 
-        <p>Also, it's really really hard to reason about non-deterministic behavior (hard not like in "A hard day's night" but like hardly possible). So let's explore if we can design TSO without violating availability when a minor number of nodes are partitioned away.</p>
+        <p>Let's explore if we can design TSO without violating availability when a minor number of nodes are partitioned away.</p>
 
         <p>The straightforward idea is to go into replicated storage on every request instead of using the cached range.</p>
 
