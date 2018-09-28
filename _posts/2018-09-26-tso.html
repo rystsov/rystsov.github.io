@@ -30,6 +30,8 @@ private: true
 
         <p>But computers changed the speed of information processing so we, software engineers, start to experience the problems, physicists had for the last century.</p>
 
+        <img src="{{ site.url }}/images/tso/abba-out.png" width="600"/>
+
         <p>When an execution of a program limited by one computer the local timer plays a role of absolute time and we can use our intuitive perception of time to reason about the behavior. But when a program is distributed we enter the relativity domain and must think like physicists. It may seem like an exaggeration but it very easy to run into time anomalies:</p>
 
         <ul>
@@ -59,17 +61,19 @@ private: true
 
         <p>The simplest implementation of TSO is a counter in a database, a fault-tolerant performant implementation is a completely different beast.</p>
 
-        <p>But before jumping into it...</p>
+        <p>But before jumping into different design of TSO, do we really need it?</p>
       </div></div>
 
       <div class="brim header"><div class="content">
-        <h4>Do we really need TSO?</h4>
+        <h4>Usage of the consensus based TSO in Percolator transaction protocol</h4>
       </div></div>
       
       <div class="brim"><div class="content">
         <p class="edge">TSO is a keystone of the Percolator transaction protocol described in the <a class="link" href="https://ai.google/research/pubs/pub36726">Large-scale Incremental Processing Using Distributed Transactions and Notifications</a> paper. To my knowledge, it's the only distributed transaction protocol providing snapshot isolation. <a class="link" href="https://en.wikipedia.org/wiki/Two-phase_commit_protocol">2PC</a> provides serializable and <a class="link" href="http://www.bailis.org/papers/ramp-sigmod2014.pdf">RAMP</a> - read committed isolation levels.</p>
 
-        <p>By the way, Percolator is used by the TiDB distributed database. Let's see what they and Google write about thier experience:</p>
+        <p>By the way, Percolator is used by the TiDB distributed database. Let's see what they and Google write about thier experience.</p>
+
+        <img src="{{ site.url }}/images/tso/pd-out.png" width="600"/>
 
         <blockquote>
           "Since every transaction requires contacting the timestamp oracle twice, this service must scale well. The oracle periodically allocates a range of timestamps by writing the highest allocated timestamp to stable storage; given an allocated range of timestamps, the oracle can satisfy future requests strictly from memory. If the oracle restarts, the timestamps will jump forward to the maximum allocated timestamp (but will never go backwards)" <a class="link" href="https://ai.google/research/pubs/pub36726">source</a>
@@ -95,10 +99,18 @@ private: true
         <p>Personally, as an engineer who is on call rotation, I'd prefer to work with a system which is robust during a disaster. Also it's really hard to think about a combosition of nondeterministic system, hard not like in "A hard day's night" but hard like hardly possible. It's easy to imagine when a minor glitch causes <code>1%</code> of downtime in the <code>A</code> and <code>B</code> systems but <code>10%</code> of downtime when the systems are combined.</p>
 
         <p>Let's explore if we can design TSO without violating availability when a minor number of nodes are partitioned away.</p>
+    </div></div>
 
-        <p>The straightforward idea is to go into replicated storage on every request instead of using the cached range.</p>
+    <div class="brim header"><div class="content">
+      <h4>Quorum clock</h4>
+    </div></div>
+      
+    <div class="brim"><div class="content">
+        <p class="edge">The straightforward idea is to go to a replicated storage on every request instead of using the cached range.</p>
 
-        <p>But it suffers from the same problem. There are several designs of replicated storage, some are based on the idea of the stable leader and subject to availability loss during re-election. No, it isn't another <a class="link" href="http://rystsov.info/2017/02/15/simple-consensus.html">rant on leader-based consensus</a>. Leaderless variants are also affected: the time (clock) requires only one register and a leader-equivalent is needed to reduce contention if it fails we still are in the same situation.</p>
+        <img src="{{ site.url }}/images/tso/consensus-out.png" width="600"/>
+
+        <p>But it suffers from the same problem. There are several designs of replicated storage, some are based on the idea of the stable leader and are subject to availability loss during re-election. No, it isn't another <a class="link" href="http://rystsov.info/2017/02/15/simple-consensus.html">rant on leader-based consensus</a>. Leaderless variants are also affected: the time (clock) requires only one register and a leader-equivalent is needed to reduce contention - if it fails we still are in the same situation.</p>
 
         <p>Instead of relying on consensus we go earlier in history and use an adaptation of <a class="link" href="https://en.wikipedia.org/wiki/Lamport_timestamps">Lamport clocks</a>.</p>
 
@@ -116,6 +128,8 @@ private: true
       <div class="brim header"><div class="content">
         <h4>How to generate timestamp?</h4>
       </div></div>
+
+      <img src="{{ site.url }}/images/tso/quorum-out.png" width="600"/>
       
       <div class="brim"><div class="content">
         <ol class="edge">
@@ -148,9 +162,7 @@ private: true
       <div class="brim"><div class="content">
         <p class="edge">If every client has a unique id then clients can play a role of TW nodes and reduce the number of hops by 1 RRT.</p>
 
-        <p>We suppose that CS keeps time in a persistent memory (disk) and updates it on every put. But persistent memory is slow compared to RAM. Let's update the protocol to serve from RAM in most cases.</p>
-
-        <p>To do it we should:</p>
+        <p>Another optimization is to serve requests to CS from RAM. We suppose that CS keeps time in a persistent memory (disk) and updates it on every put. But persistent memory is slow compared to RAM. Let's update the protocol to serve from RAM in most cases. To do it we should:</p>
 
         <ol>
           <li>Split CS's time into epoch and time.</li>
@@ -159,8 +171,6 @@ private: true
           <li>If put epoch is greater than current epoch overwrite current epoch on disk.</li>
           <li>Update time only in RAM.</li>
         </ol>
-
-        <p>Using this optimization all put first put will be served from memory.</p>
       </div></div>
 
       <div class="brim header"><div class="content">
@@ -169,12 +179,12 @@ private: true
 
       <div class="brim"><div class="content">
         <ol class="edge">
-          <li>Same number or hops: consensus counter - client->leader->acceptors->leader->client, and quorum clock - client->CS->client->CS->client.</li>
+          <li>Same number or hops. Consensus counter: client → leader → acceptors → leader → client, quorum clock: client → CS → client → CS → client.</li>
           <li>When a leader is partitioned away consensus counter suffers from a short period of unavailability. Quorum clock tolerated isolation of any node without downtime.</li>
           <li>Quorum clock serves requests from memory without touching the disc.</li>
         </ol>
 
-        <p>Both solutions don't give the sense of time to an operator making it hard to correlate real-world events with the behavior of the system. Hopefully <a class="link" href="https://cse.buffalo.edu/tech-reports/2014-04.pdf">hybrid logical clock</a> has the same properties as Lamport clock but also include physical time in the timestamp so we can build quorum clock on top of HLC to overcome the correlation issue.</p>
+        <p>Both solutions don't give the sense of time to an operator, making it hard to correlate real-world events with the behavior of the system. Hopefully <a class="link" href="https://cse.buffalo.edu/tech-reports/2014-04.pdf">hybrid logical clock</a> has the same properties as Lamport clock but also include physical time in the timestamp so we can build quorum clock on top of HLC to overcome the correlation issue.</p>
       </div></div>
   </div>
 </div>
