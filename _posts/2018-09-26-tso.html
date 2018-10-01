@@ -1,7 +1,7 @@
 ---
 layout: page
-title: "Quorum clock: distributed fault tolerant clock"
-name: "Quorum clock: distributed fault tolerant clock"
+title: "Quorum clock: leaderless fault-tolerant distributed clock"
+name: "Quorum clock: leaderless fault-tolerant distributed clock"
 tags: ["pre_distr"]
 desc: "TODO"
 has_comments: true
@@ -128,11 +128,11 @@ private: true
       <div class="brim header"><div class="content">
         <h4>How to generate timestamp?</h4>
       </div></div>
-
-      <img src="{{ site.url }}/images/tso/quorum-out.png" width="600"/>
       
       <div class="brim"><div class="content">
-        <ol class="edge">
+        <img class="edge" src="{{ site.url }}/images/tso/quorum-out.png" width="600"/>
+        
+        <ol>
           <li>Client randomly selects TW node and asks it for a timestamp.</li>
           <li>TW node asks CS nodes for their stored time.</li>
           <li>TW node waits for at least <code>N+1</code> responses.</li>
