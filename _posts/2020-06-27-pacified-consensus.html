@@ -1,0 +1,539 @@
+---
+layout: page
+title: "Pacified consensus: how to retrofit leaderlessness into a Paxos or Raft based protocol"
+name: "Pacified consensus: how to retrofit leaderlessness into a Paxos or Raft based protocol"
+tags: ["pre_distr"]
+desc: "A leaderless consensus protocol built in a modular way on top of known consensus protocol. Its modularity helps in understanding and retrofitting into existing solutions."
+has_comments: true
+ignore_css: true
+marker: cst
+cst: true
+---
+
+<div class="column">
+    <div class="cst">
+        <div class="menu">
+          <span class="home"><a href="{{ site.url }}/">Home</a></span>
+        </div>
+  
+        <div class="brim header"><div class="content">
+          <h2>Pacified consensus: how to retrofit leaderlessness into a Paxos or Raft based protocol</h2>
+        </div></div>
+
+        <div class="brim abstract-brim"><div class="content">
+            <p class="edge"><span class="bold">Abstract.</span> Papers on leaderless consensus protocols such as EPaxos and Atlas describe the protocols from the ground up. This approach helps a reader without prior knowledge to understand how they work, but at the same time it makes it hard for an expert to grok them because they need to trace and check all the assumptions from scratch rather than rely on already proved protocols. This may explain why the leaderless consensus protocols didn't get traction in the industry despite being known since 2013.</p>
+
+            <p>In this post I present a leaderless consensus protocol built in a modular way on top of known consensus protocol. Its modularity helps in understanding and retrofitting into existing solutions.</p>
+        </div></div>
+
+        <div class="brim"><div class="content">
+            <p class="edge">From an engineering perspective a consensus protocol is a replication protocol. Usually it is used to replicate a state of an application (a state machine) to increase its availability. The key difference between consensus and primary-backup replication is an ability to tolerate node and network failures without losing integrity of the data.</p>
+
+            <p>Ways to replicate common data structures via consensus</p>
+
+            <table class="consensus1">
+                <tr class="title">
+                    <th>Datastructure</th>
+                    <th>Protocol</th>
+                    <th>Paper</th>
+                </tr>
+                <tr>
+                    <td class="top">Log</td>
+                    <td class="top">Multi-Paxos</td>
+                    <td class="top"><a href="https://www.cs.utexas.edu/users/lorenzo/corsi/cs380d/papers/paper2-1.pdf">Paxos Made Live - An Engineering Perspective</a> (2007)</td>
+                </tr>
+                <tr>
+                    <td class="bottom"></td>
+                    <td class="bottom">Raft</td>
+                    <td class="bottom"><a href="https://raft.github.io/raft.pdf">In Search of an Understandable Consensus Algorithm</a> (2014)</td>
+                </tr>
+                <tr>
+                    <td class="top bottom">Write once register</td>
+                    <td class="top bottom">Synod</td>
+                    <td class="top bottom"><a href="https://lamport.azurewebsites.net/pubs/paxos-simple.pdf">Paxos Made Simple</a> (2001)</td>
+                </tr>
+                <tr>
+                    <td class="top">Rewrite register</td>
+                    <td class="top">CASPaxos</td>
+                    <td class="top"><a href="https://arxiv.org/abs/1802.07000">CASPaxos: Replicated State Machines without logs</a> (2018)</td>
+                </tr>
+                <tr>
+                    <td class="bottom"></td>
+                    <td class="bottom">Active Disk Paxos</td>
+                    <td class="bottom"><a href="https://groups.csail.mit.edu/tds/papers/Chockler/podc-02.pdf">Active Disk Paxos with infinitely many processes</a> (2002)</td>
+                </tr>
+            </table>
+
+            <p>One may think of consensus replication as a strongly consistent variant of master-master replication where any replica (a proposer) can initiate a change. Althrouth consistency is never compromised in practice the concurrent processes may abort each other and stall the performance. In literature this situation is known as dueling proposers.</p>
+
+            <blockquote>"It’s easy to construct a scenario in which two proposers each keep issuing a sequence of proposals with increasing numbers, none of which are ever chosen", Paxos Made Simple</blockquote>
+
+            <blockquote>"The presence of two concurrent leaders can prevent the commitment of any consensus decision and hence prevent progress", Deconstructing Paxos</blockquote>
+
+            <blockquote>"if multiple processes detect that there is no leaser and all attempt to become leader an the same time, then none of the process is likely to succeed (again dueling proposers)", Google SRE book</blockquote>
+
+            <p>The can't be dismissed as a fluke, take latency of CASPaxos when all requests to change the <span class="bold">same object</span> land the same replica and latency of CASPaxos when the requests are uniformly distributed across all five replicas.</p>
+
+            <img src="{{ site.url }}/images/pacified/dueling.png" class="mw45" />
+
+            <p>We see that when there are 20 clients then the dueling reduces throughput 2.85 times from 4513 ops/s to 1581 op/s and increases p99 latency 10.37 times from 4467 microseconds to 46 milliseconds.</p>
+
+            <p>The absolute numbers and the degradation ratio depend on the hardware. For this and all the follow up experiments I simulated <code class="embed">5+c</code> nodes cluster (where <code class="embed">c</code> is the number of the clients) with around 178 us RTT between any nodes, 655 bytes/us network throughput, 2 ms fsync disk latency and 1132 bytes/us disk throughput, although I haven't pushed the system to the limit of the bandwidth so the throughput numbers for disk and network don't really matter.</p>
+
+            <p>The shape of the charts surprised me. Usually when a system reaches saturation the latency looks linear while throughput reaches plateau and stops growing. But in this case the shapes are inverted which implies that the system is far from saturation and that we can keep adding clients increasing throughput without affecting latency. It happens because CASPaxos replicates state instead of the commands so a proposer can apply multiple commands in chain to the stored state and replicate only the final version (batching on steroids) reducing the load on the network.</p>
+
+            <p>Leslie Lamport suggested using a leader election abstraction to select a leader (a distinguished proposer) which is the only one capable of processing requests. It's worth noting that the idea of a leader is used to reduce contention and not to enforce consistency. Meaning the leader election may be weak and may not prevent the case where several replicas become leaders for the same period of time. It allows the use of a large class of protocols for leader election including randomised timeouts &amp; heartbeats, consistent hashing routering or external arbiter.</p>
+
+            <p>But the idea of leader election has its flaws:</p>
+
+            <ul>
+                <li>hardware issues may degrade performance of a leader and affect the whole system</li>
+                <li>after a leader fails and until a new leader is elected, a consensus based system becomes unavailable</li>
+                <li>randomised leader election under unstable network creates non-trivial failure modes which may delay election of a new leader</li>
+            </ul>
+
+            <p>I built a leadered version of consensus replication and used fault injection to demonstrate the issues. The stable leadership is compared with ad hoc leadership which is known to suffer from dueling proposers under normal circumstances. The leaderd system uses 4ms election timeout while the fault injector isolates a random replica for 12ms.</p>
+
+            <img src="{{ site.url }}/images/pacified/leader.adhoc.unrest.png" class="mw45" />
+
+            <p>For 20 clients the fault injections cause the stable leadership to have 2.46 times lower throughput (709 ops/s vs. 1750 ops/s) and 1.5 times higher p99 latency (60ms vs. 40ms) than an ad hoc leadership approach.</p>
+
+            <p>It looks like we have to choose between scylla and charybdis: either to have 6.36 times lower than optimal throughput (4513 ops/s vs 709 ops/s) during unavoidable transient issues under strong leadership or to have throughput profile independent of failures (1581 ops/s and 1750 ops/s) but both 2.85 times less than optimal under ad hoc leadership.</p>
+
+            <p>The question is if there is a compromise between being fast without failures and being fast on a rainy day. The family of leaderless consensus protocols fills that niche.</p>
+
+            <img src="{{ site.url }}/images/pacified/epaxos.png" class="mw25"/>
+
+            <p>EPaxos solves the contention problem and provides excellent fault tolerance. But despite being around for seven years it hasn't generated enough traction and I don't know any product in the industry which is using it. The lack of interest is especially noticeable if we compare EPaxos to Raft protocol which was discovered around the same time.</p>
+
+            <table class="consensus2">
+                <tr class="title">
+                    <td class="left">Leaderless protocol</td>
+                    <td>Paper</td>
+                </tr>
+                <tr>
+                    <td class="left">EPaxos</td>
+                    <td><a href="https://www.cs.cmu.edu/~dga/papers/epaxos-sosp2013.pdf">There Is More Consensus in Egalitarian Parliaments</a> (2013)</td>
+                </tr>
+                <tr>
+                    <td class="left">Atlas</td>
+                    <td><a href="https://arxiv.org/abs/2003.11789">State-Machine Replication for Planet-Scale Systems</a> (2020)</td>
+                </tr>
+                <tr>
+                    <td class="left">Gryff</td>
+                    <td><a href="https://www.usenix.org/conference/nsdi20/presentation/burke">Gryff: Unifying Consensus and Shared Registers</a> (2020)</td>
+                </tr>
+            </table>
+
+            <p>The lack of popularity may be attributed to the complexity. I've found several reports on implementing EPaxos: <a href="https://medium.com/princeton-systems-course/reproducing-epaxos-by-ang-li-and-robin-qiu-b5a8fc5262a2">Reproducing EPaxos</a> by Robin Qiu and <a href="https://issues.apache.org/jira/browse/CASSANDRA-6246">EPaxos</a> by Blake Eggleston, and both of them mention the complexity of EPaxos:</p>
+
+            <blockquote>One major drawback of the algorithm is its complexity. From our understanding, EPaxos is more like a two-dimensional Paxos on top of an eventual-consistency-like layer.</blockquote>
+
+            <blockquote>We only implemented the basic EPaxos, and it is already much more complicated than Raft. We believe the fully optimized EPaxos will be even more complicated. In practice, complicated algorithms are hard to design, optimize, and maintain, making them less likely to be adopted in production.</blockquote>
+
+            <blockquote>It’s still pretty rough, I just wanted to get it to a point where we could get a feel for the performance advantages and decide if the additional complexity was worth it</blockquote>
+
+            <p>Funny enough the complexity of the protocol <a href="https://arxiv.org/pdf/1906.10917.pdf">manifested</a> in the official reference implementation of the EPaxos and TLA+ proof having a bug which leads replicas to diverge and break the linearizability of the replicated service.</p>
+
+            <p>This post is an attempt to design a leaderless consensus protocol but keep it simple via the modular approach by reusing already proved components.</p>
+
+        </div></div>
+
+        <div class="brim header"><div class="content">
+            <h3>Pacified consensus</h3>
+        </div></div>
+          
+        <div class="brim"><div class="content">
+            <p class="edge">The core idea of the pacified consensus is to order client requests and to let replicas to co-execute the same request in parallel. The preordering reduces contention and parallel execution increases fault tolerance. Even when one replica gets isolated or goes offline another finishes its request without a delay because it is already working on it in parallel.</p>
+
+            <p>The parallel execution doesn't affect correctness because the effects of the parallel execution can be explained by the selective duplication of messages and Paxos tolerates this kind of intrusion</p>
+
+            <blockquote>"Messages can take arbitrarily long to be delivered, can be duplicated, and can be lost, but they are not corrupted", Paxos Made Simple</blockquote>
+
+            <p>The task of ordering client requests in a fault tolerant way and replicating it to the replicas sounds like a consensus problem. It is natural to suggest that running two consensus replication processes can't be faster than running just one but actually it is.</p>
+
+            <p>The trick is that a major part of the latency comes from the disk IO. Even when we use NVM but target high throughput we should make small delays to accumulate writes (4 ms) and write them in batches.</p>
+
+            <img src="{{ site.url }}/images/pacified/nvm.png" class="mw25"/>
+
+            <p>4 ms is 20 times higher than intra datacenter RTT, so in-memory consensus in front of on-disk consensus doesn't contribute much to the overall end to end latency but completely eliminates contention.</p>
+
+            <p>This idea isn't just wild speculations, I've built it and measured the performance. And the leaderless consensus performs on par with leadered when there are no faults, latency is just 23% worse but throughput is 36% better.</p>
+
+            <img src="{{ site.url }}/images/pacified/leaderless.leader.png" class="mw45" />
+
+            The leaderless consensus with faults performs a bit worse than leaderless consensus without faults.
+
+            <img src="{{ site.url }}/images/pacified/leaderless.unrest.png" class="mw45" />
+
+            <p>Without context 67% increase in P99 latency (9267us vs 5535us) and 12% decrease in throughput (6154 ops/s vs 5392 ops/s) doesn't look good but when we compare it with other solutions it's almost an order of magnitude better.</p>
+
+            <table class="performance2">
+                <tr class="title">
+                    <td class="left">Metric</td>
+                    <td class="left">Leaderless</td>
+                    <td class="left">Leadership</td>
+                    <td>Ad hoc leadership</td>
+                </tr>
+
+                <tr>
+                    <td class="left">p99 latency w/o faults</td>
+                    <td class="left">5 ms</td>
+                    <td class="left">4 ms</td>
+                    <td>46 ms</td>
+                </tr>
+
+                <tr>
+                    <td class="left">p99 latency w faults</td>
+                    <td class="left">9 ms</td>
+                    <td class="left">60 ms</td>
+                    <td>40 ms</td>
+                </tr>
+
+                <tr>
+                    <td class="left">throuthput w/o faults</td>
+                    <td class="left">6154 ops/s</td>
+                    <td class="left">4513 ops/s</td>
+                    <td>1581 ops/s</td>
+                </tr>
+
+                <tr>
+                    <td class="left">throuthput w faults</td>
+                    <td class="left">5392 ops/s</td>
+                    <td class="left">709 ops/s</td>
+                    <td>1750 ops/s</td>
+                </tr>
+            </table>
+
+            <p>The numbers for throughput are far from saturation and just represent behaviour of the system under the same close loop load caused by 20 clients.</p>
+
+            <p>In the next sections we review the optimisations contributed to the improvement of the performance.</p>
+        </div></div>
+
+        <div class="brim header"><div class="content">
+            <h4>In-memory ordering of client requests</h4>
+        </div></div>
+          
+        <div class="brim"><div class="content">
+            <p class="edge">The ad hoc leadership consensus is a straightforward <a href="https://arxiv.org/abs/1802.07000">CASPaxos</a> implementation. The differences are <span class="retry-timeout">retrying timeouted commands</span>, <span class="vector-clocks">using vector clocks</span> to prevent execution of the same commands twice and <span class="batch">batching</span> to execute multiple commands per a replication cycle.</p>
+
+            <p>The leaderless consensus is basically the same code with an <span class="inmem">exception</span> of synchronization of commands and read state before execution. The last bit is necessary because in case of a failure a consensus based replication may exist in a transient state where multiple outcomes are possible, without a synchronization different proposers executing the same command may choose different states and come with different outcomes.</p>
+
+            <table class="pacified1">
+                <tr class="title">
+                    <td class="left">Ad hoc leadership consensus</td>
+                    <td>Pacified leaderless consensus</td>
+                </tr>
+                <tr>
+                    <td class="left">
+<pre><code>epoch = 0
+verGen = 0
+id = &lt;&lt; address of a replica &gt;&gt;
+
+
+function apply(<span class="batch">requests</span>) {
+    <span class="vector-clocks">var ver = ++verGen;</span>
+
+    <span class="retry-timeout">while (true) {</span>
+        var ballot = (++epoch, id)
+        
+        try {
+            var promises = majority(acceptors.prepare(ballot));
+            var promise = promises.maxBy(x => x.acceptedAt);
+
+            var (acceptedAt, state) = promise;
+            var (value, vector) = state;
+            if (<span class="vector-clocks">vector[id] == ver</span>) {
+                majority(acceptors.accept(ballot, state));
+                foreach (request in requests) {
+                    reply(request.sender, TIMEOUT);
+                }
+            } else {
+                outcome = []
+                <span class="batch">foreach (request in requests) {</span>
+                    value = request.change(value);
+                    outcome.add([request.sender, value]);
+                <span class="batch">}</span>
+                <span class="vector-clocks">vector[id] = ver;</span>
+                majority(acceptors.accept(ballot, (value, vector)));
+                foreach ([sender, result] in outcome) {
+                    reply(sender, result);
+                }
+            }
+            <span class="retry-timeout">break;</span>
+        } catch(Conflicts e) {
+            epoch = max(epoch, max(e.epochs))
+        } catch { }
+    <span class="retry-timeout">}</span>
+}</code></pre>
+                    </td>
+                    <td>
+<pre><code>epoch = 0
+verGen = 0
+id = &lt;&lt; address of a replica &gt;&gt;
+<span class="inmem">casCmd = new InMemCASPaxos();
+casState = new InMemCASPaxos();</span>
+
+function apply(<span class="batch">requests</span>) {
+    <span class="vector-clocks">var ver = ++verGen;</span>
+
+    <span class="retry-timeout">while (true) {</span>
+<span class="inmem">        var appeal = null;
+        try {
+            appeal = casCmd.apply(function(state) {
+                if (state.epoch == epoch && <span class="vector-clocks">state.vector[id] &lt; ver</span>) {
+                    state.request = request;
+                    state.epoch = epoch + 1;
+                    <span class="vector-clocks">state.vector[id] = ver;</span>
+                }
+                return state;
+            });
+        } catch { continue; }
+</span>
+        var ballot = (appeal.epoch, "")
+        
+        try {
+            var promises = majority(acceptors.prepare(ballot));
+            var promise = promises.maxBy(x => x.acceptedAt);
+        
+<span class="inmem">            (pEpoch, promise) = casState.apply(function(state) {
+                var (epoch, value) = state;
+                value = epoch &lt; appeal.epoch ? promise : value;
+                return (max(epoch, appeal.epoch), value);
+            });
+            if (pEpoch &gt; appeal.epoch) continue;</span>
+        
+            var (acceptedAt, state) = promise;
+            var (prevValue, currValue) = state;
+            var value = acceptedAt == ballot ? prevValue : currValue;
+            outcome = []
+            <span class="batch">foreach (request in appeal.requests) {</span>
+                value = request.change(value);
+                outcome.add([request.sender, value]);
+            <span class="batch">}</span>
+            prevValue = acceptedAt == ballot ? prevValue : currValue;
+            majority(acceptors.accept(ballot, (prevValue, value)))
+            foreach ([sender, result] in outcome) {
+                reply(sender, result);
+            }
+            epoch = appeal.epoch
+            <span class="retry-timeout">if (<span class="vector-clocks">appeal.vector[id] == ver</span>) {
+                break;
+            }</span>
+        } catch(Conflicts e) {
+            epoch = appeal.epoch
+        } catch { }
+    <span class="retry-timeout">}</span>
+}</code></pre>
+                    </td>
+                </tr>
+            </table>
+
+            <p>Just like with regular Multi-Paxos the next prepare may piggyback on the last accept phase and reduce the number of round trips by eliminating prepare and synchronization of state phases in most cases.</p>
+        </div></div>
+
+        <div class="brim header"><div class="content">
+            <h4>Request sharing</h4>
+        </div></div>
+        
+        <div class="brim"><div class="content">
+            <p class="edge">When proposers try to suggest and synchronize a batch of new commands using in-memory consensus only one proposer wins while the others read that batch and co-execute it. In case of replication over five replicas on average each proposer wins every 5th round so the requests take 5 fsyncs to execute and the latency becomes too high.</p>
+
+            <p>The picture is similar to a bitcoin-like blockchain, the requests are transactions, the proposers are miners, the command synchronization is mining and co-execution is validation. Bitcoin solves the problem of low per miner rate of block generation by sending transactions to multiple miners. Because from a client perspective it doesn't matter which particular miner executes it. Pacified consensus utilizes the same idea.</p>
+
+            <p>Proposers take a batch of incoming client request, timestamp them with vector clocks, gossip to another proposers, combine a batch with incoming gossips to form a consolidated incoming batch and then start the synchronize / co-execution loop until the vector timestamp of the executed commands catches up with the timestamp of the consolidated incoming batch. Since the same commands may be part of different consolidated upcoming batches the proposers use vector clocks during the co-execution phase to filter out already executed commands.</p>
+
+            <p>The gossip is embedded into the prepare phase of the synchronization so the total number of round trips isn't increased.</p>
+        </div></div>
+
+        <div class="brim header"><div class="content">
+            <h4>In-memory paxos optimisations</h4>
+        </div></div>
+        
+        <div class="brim"><div class="content">
+            <p class="edge">Even though synchronization of the commands happens in-memory it still may encounter conflicts leading to multiple retries and increasing latency. It is important to discuss how to reduce the conflicts. Oddly enough we may use the technique similar to the eliminating conflicts of on-disk paxos - co-execution of requests.</p>
+
+            <p>A proposer passes a list of commands during a prepare phase and uses a combination of an epoch and a hash of the list as a ballot number. In that way once a concurrent proposer encounters a conflict it could pick up a ballot of a contender, its value and co-execute it. But unlike the on-disk paxos it doesn't need to synchronize the read state because the consolidated incoming batch of the commands of the next epoch semantically doesn't depend on the previous epoch.</p>
+
+            <p>The same technique is used with synchronization of the state (its ballot is a combination of epoch and read acceptedAt).</p>
+        </div></div>
+
+        <div class="brim header"><div class="content">
+            <h4>Recovery</h4>
+        </div></div>
+        
+        <div class="brim"><div class="content">
+            <p class="edge">The use of in-memory paxos looks like a potential safety violation because paxos depends on stable storage and in case of a failure all data stored in volatile memory is lost.</p>
+
+            <p>The violation happens when different proposers choose different consolidated incoming batches or read state for the same epoch. To prevent it pacified consensus use an eon as another dimension to ballot numbers and epoch. When a proposer loads or restarts it reads an eon, increments it, saves to local storage, generates a ballot number with that eon, executes prepare phase using the ballot and only then starts serving the requests. Once a proposer encounters a ballot with higher eon, it should update its eon in the storage before serving a request.</p>
+
+            <p>This fencing mechanism is expressed in terms of ballots numbers and doesn't compromise their uniqueness or monotonicity so by definition of paxos correctness can't be affected. From a client perspective a change of an eon causes requests originated in a previous eon to timeout.</p>
+        </div></div>
+
+        <div class="brim header"><div class="content">
+            <h4>Pacified Raft</h4>
+        </div></div>
+        
+        <div class="brim"><div class="content">
+            <p class="edge">Heidi Howard and Richard Mortier demonstrated in their paper <a href="https://arxiv.org/abs/2004.05074">Paxos vs Raft: Have we reached consensus on distributed consensus?</a> that Paxos and Raft take a very similar approach to distributed consensus, differing only in their approach to leader election. With pacified consensus every replica becomes a leader so the need for leader election goes away and Raft becomes almost Paxos. It makes possible to apply the idea of pacified consensus up to almost any Raft-base product.</p>
+
+            <p>Once we get rid of heartbeats, leases and leader election and add the command / state synchronization layer Pacified Raft becomes almost indistinguishable from Pacified CASPaxos. The main difference is that CASPaxos replicates state and Raft replicates a log of commands so in case of staleness Raft needs to <span class="fetch">fetch missing commands</span> to fill the gaps before executing new commands.</p>
+
+            <p>When the state is heavy (e.g. a fsm per the whole database) one should choose log replication but when it's tiny (e.g. a fsm per key in a key value storage) the choice between state and logs is a choice between engineering complexity of implementing multi-key transactions and engineering complexity of managing log such as snapshotting and compaction.</p>
+
+            <table class="pacified1">
+                <tr class="title">
+                    <td class="left">Pacified CASPaxos</td>
+                    <td>Pacified Raft</td>
+                </tr>
+                <tr>
+                    <td class="left">
+<pre><code>epoch = 0
+verGen = 0
+id = &lt;&lt; address of a replica &gt;&gt;
+<span class="inmem">casCmd = new InMemCASPaxos();
+casState = new InMemCASPaxos();</span>
+
+
+function apply(<span class="batch">requests</span>) {
+    <span class="vector-clocks">var ver = ++verGen;</span>
+
+    <span class="retry-timeout">while (true) {</span>
+<span class="inmem">        var appeal = null;
+        try {
+            appeal = casCmd.apply(function(state) {
+                if (state.epoch == epoch && <span class="vector-clocks">state.vector[id] &lt; ver</span>) {
+                    state.request = request;
+                    state.epoch = epoch + 1;
+                    <span class="vector-clocks">state.vector[id] = ver;</span>
+                }
+                return state;
+            });
+        } catch { continue; }
+</span>
+        var ballot = (appeal.epoch, "")
+        
+        try {
+            var promises = majority(acceptors.prepare(ballot));
+            var promise = promises.maxBy(x => x.acceptedAt);
+        
+<span class="inmem">            (pEpoch, promise) = casState.apply(function(state) {
+                var (epoch, value) = state;
+                value = epoch &lt; appeal.epoch ? promise : value;
+                return (max(epoch, appeal.epoch), value);
+            });
+            if (pEpoch &gt; appeal.epoch) continue;</span>
+        
+            var (acceptedAt, state) = promise;
+            var (prevValue, currValue) = state;
+            var value = acceptedAt == ballot ? prevValue : currValue;
+            outcome = []
+            <span class="batch">foreach (request in appeal.requests) {</span>
+                value = request.change(value);
+                outcome.add([request.sender, value]);
+            <span class="batch">}</span>
+            prevValue = acceptedAt == ballot ? prevValue : currValue;
+            majority(acceptors.accept(ballot, (prevValue, value)))
+            foreach ([sender, result] in outcome) {
+                reply(sender, result);
+            }
+            epoch = appeal.epoch
+            <span class="retry-timeout">if (<span class="vector-clocks">appeal.vector[id] == ver</span>) {
+                break;
+            }</span>
+        } catch(Conflicts e) {
+            epoch = appeal.epoch
+        } catch { }
+    <span class="retry-timeout">}</span>
+}</code></pre>
+                    </td>
+                    <td>
+<pre><code>epoch = 0
+verGen = 0
+id = &lt;&lt; address of a replica &gt;&gt;
+<span class="inmem">casCmd = new InMemCASPaxos();
+casState = new InMemCASPaxos();</span>
+fsmState = null;
+
+function apply(<span class="batch">requests</span>) {
+    <span class="vector-clocks">var ver = ++verGen;</span>
+
+    <span class="retry-timeout">while (true) {</span>
+<span class="inmem">        var appeal = null;
+        try {
+            appeal = casCmd.apply(function(state) {
+                if (state.epoch == epoch && <span class="vector-clocks">state.vector[id] &lt; ver</span>) {
+                    state.requests = requests;
+                    state.epoch = epoch + 1;
+                    <span class="vector-clocks">state.vector[id] = ver;</span>
+                }
+                return state;
+            });
+        } catch { continue; }
+</span>
+        var ballot = (appeal.epoch, "")
+
+        try {
+            var promises = majority(acceptors.prepare(ballot));
+            var promise = promises.maxBy(x => x.acceptedAt);
+
+<span class="inmem">            (pEpoch, promise) = casState.apply(function(state) {
+                var (epoch, value) = state;
+                value = epoch &lt; appeal.epoch ? promise : value;
+                return (max(epoch, appeal.epoch), value);
+            });
+            if (pEpoch &gt; appeal.epoch) continue;</span>
+
+            var (acceptedAt, _) = promise;
+            var nextState = fsmState;
+            var output = [];
+            <span class="fetch">foreach (request in fetchLog(epoch + 1, appeal.epoch - 1)) {</span>
+                nextState = request.change(nextState);
+                outcome.add([request.sender, nextState]);
+            <span class="fetch">}</span>
+            majority(acceptors.accept(ballot, appeal.requests));
+            <span class="batch">foreach (request in appeal.requests) {</span>
+                nextState = request.change(nextState);
+                outcome.add([request.sender, nextState]);
+            <span class="batch">}</span>
+            fsmState = nextState;
+            epoch = appeal.epoch;
+            foreach ([sender, result] in outcome) {
+                reply(sender, result);
+            }
+            <span class="retry-timeout">if (<span class="vector-clocks">appeal.vector[id] == ver</span>) {
+                break;
+            }</span>
+        } catch(Conflicts e) {
+            epoch = appeal.epoch
+        } catch { }
+    <span class="retry-timeout">}</span>
+}</code></pre>
+                    </td>
+                </tr>
+            </table>
+
+            <p>Just like with Paxos the prepare, state synchronization and <span class="fetch">fetching</span> phases may be skipped when there is no gaps between current epoch and previous epoch (<code>appeal.epoch</code> and <code>epoch</code>).</p>
+        </div></div>
+
+        <div class="brim header"><div class="content">
+            <h3>Conclusion</h3>
+        </div></div>
+          
+        <div class="brim"><div class="content">
+            <p class="edge">The core idea of the pacified consensus is trivial, let the in-memory CASPaxos consensus order all the incoming requests, and then let proposer to co-execute them in sequences. Co-execution increases fault tolerance while sequential execution eliminates dueling of proposers.</p>
+
+            <p>Since both consensuses differ only by storage they use the overall complexity is no greater than Paxos which we know is made simple 😃 The proof of correctness is based on well known properties of Paxos such as duplication of network messages.</p>
+
+            <p>The lowest latency is achieved when the core idea is combined with several known and novel optimizations:</p>
+
+            <ul>
+                <li>piggybacking next prepare on current accept</li>
+                <li>gossiping requests and using vector clocks to monitor their execution</li>
+                <li>co-execution of the in-memory consensus commands</li>
+            </ul>
+
+            <p>The glueing all the parts together is a straightforward engineering so now it looks like we get an understandable leaderless consensus protocol.</p>
+        </div></div>
+    </div>
+</div>

@@ -14,6 +14,13 @@
     font-weight: bold;
 }
 
+.cst .brim h3 {
+    text-align: left;
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-top: 0.5em;
+}
+
 .cst .brim h4 {
     text-align: left;
     font-size: 1.2em;
@@ -214,4 +221,169 @@
 .cst .brim .gist {
     margin-top: 1em;
     margin-bottom: 1em;
+}
+
+/* pacified */
+
+span.bold {
+    font-weight: bold;
+}
+
+.cst .abstract-brim {
+    padding-bottom: 1em;
+}
+
+.cst .abstract-brim .content {
+    border-left-width: 0.5em;
+    border-left-color: black;
+    border-left-style: solid;
+    border-right-width: 0.5em;
+    border-right-color: black;
+    border-right-style: solid;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+.cst .brim table.consensus1 {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0.5em;
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.cst .brim .consensus1 th {
+    padding: 0.4em;
+}
+
+.cst .brim .consensus1 td {
+    padding-left: 0.4em;
+    padding-right: 0.4em;
+}
+
+.cst .brim .consensus1 .top {
+    padding-top: 0.4em;
+}
+
+.cst .brim .consensus1 .bottom {
+    padding-bottom: 0.4em;
+}
+
+.cst .brim .consensus1 tr.title {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.cst .brim table.consensus2 {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0.5em;
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.cst .brim .consensus2 th {
+    padding: 0.4em;
+}
+
+.cst .brim .consensus2 td {
+    padding: 0.4em;
+}
+
+.cst .brim .consensus2 .left {
+    border-right-style: solid;
+    border-right-width: 1px;
+}
+
+.cst .brim .consensus2 tr.title {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.cst .brim table.performance2 {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0.5em;
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.cst .brim .performance2 th {
+    padding: 0.4em;
+}
+
+.cst .brim .performance2 td {
+    padding: 0.4em;
+}
+
+.cst .brim .performance2 .left {
+    border-right-style: solid;
+    border-right-width: 1px;
+}
+
+.cst .brim .performance2 tr.title {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.cst .brim img.mw45 {
+    max-width: 45em;
+}
+
+.cst .brim img.mw25 {
+    max-width: 25em;
+}
+
+.cst .brim span.vector-clocks {
+    background-color: lightpink;
+}
+
+.cst .brim span.retry-timeout {
+    background-color: lightblue;
+}
+
+.cst .brim span.batch {
+    background-color: lightseagreen;
+}
+
+.cst .brim span.fetch {
+    background-color: lightgray;
+}
+
+.cst .brim span.inmem {
+    background-color: yellow;
+}
+
+.cst .brim .pacified1 pre {
+    font-size: 0.6em;
+}
+
+.cst .brim table.pacified1 {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1em;
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.cst .brim .pacified1 td {
+    padding: 0.4em;
+}
+
+.cst .brim .pacified1 .left {
+    border-right-style: solid;
+    border-right-width: 1px;
+}
+
+.cst .brim .pacified1 tr.title {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
 }
