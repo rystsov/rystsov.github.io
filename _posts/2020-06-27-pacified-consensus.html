@@ -162,11 +162,7 @@ cst: true
 
             <img src="{{ site.url }}/images/pacified/leaderless.leader.png" class="mw45" />
 
-            The leaderless consensus with faults performs a bit worse than leaderless consensus without faults.
-
-            <img src="{{ site.url }}/images/pacified/leaderless.unrest.png" class="mw45" />
-
-            <p>Without context 67% increase in P99 latency (9267us vs 5535us) and 12% decrease in throughput (6154 ops/s vs 5392 ops/s) doesn't look good but when we compare it with other solutions it's almost an order of magnitude better.</p>
+            <p>But when we inject the fault the leadeless consensus protocol becomes almost an order of magnitude better than leadered or ad hoc solutions.</p>
 
             <table class="performance2">
                 <tr class="title">
@@ -205,7 +201,7 @@ cst: true
                 </tr>
             </table>
 
-            <p>The numbers for throughput are far from saturation and just represent behaviour of the system under the same close loop load caused by 20 clients.</p>
+            <p class="it">The numbers for throughput are far from saturation and just represent behaviour of the system under the same close loop load caused by 20 clients.</p>
 
             <p>In the next sections we review the optimisations contributed to the improvement of the performance.</p>
         </div></div>
@@ -282,7 +278,7 @@ function apply(<span class="batch">requests</span>) {
         try {
             appeal = casCmd.apply(function(state) {
                 if (state.epoch == epoch && <span class="vector-clocks">state.vector[id] &lt; ver</span>) {
-                    state.request = request;
+                    state.requests = requests;
                     state.epoch = epoch + 1;
                     <span class="vector-clocks">state.vector[id] = ver;</span>
                 }
@@ -403,7 +399,7 @@ function apply(<span class="batch">requests</span>) {
         try {
             appeal = casCmd.apply(function(state) {
                 if (state.epoch == epoch && <span class="vector-clocks">state.vector[id] &lt; ver</span>) {
-                    state.request = request;
+                    state.requests = requests;
                     state.epoch = epoch + 1;
                     <span class="vector-clocks">state.vector[id] = ver;</span>
                 }
