@@ -152,7 +152,7 @@ cst: true
 
             <p>The task of ordering client requests in a fault tolerant way and replicating it to the replicas sounds like a consensus problem. It is natural to suggest that running two consensus replication processes can't be faster than running just one but actually it is.</p>
 
-            <p>The trick is that a major part of the latency comes from the disk IO. Even when we use NVM but target high throughput we should make small delays to accumulate writes (4 ms) and write them in batches.</p>
+            <p>The trick is that a major part of the latency comes from the disk IO. When we aim for high throughput we should make small delays to accumulate writes (4 ms) and write them in batches even when we use NVM.</p>
 
             <img src="{{ site.url }}/images/pacified/nvm.png" class="mw25"/>
 
@@ -211,7 +211,9 @@ cst: true
         </div></div>
           
         <div class="brim"><div class="content">
-            <p class="edge">The ad hoc leadership consensus is a straightforward <a href="https://arxiv.org/abs/1802.07000">CASPaxos</a> implementation. The differences are <span class="retry-timeout">retrying timeouted commands</span>, <span class="vector-clocks">using vector clocks</span> to prevent execution of the same commands twice and <span class="batch">batching</span> to execute multiple commands per a replication cycle.</p>
+            <p class="edge">Pacified consensus is about running two layers of consensus protocols with different disk access policy. It doesn't matter if it's in-memory Raft in front of on-disk Raft or in-memory Multi-Paxos in front of on-disk Multi-Paxos. To keep things compact I focus on CASPaxos so it's a prerequisite to read <a href="https://arxiv.org/abs/1802.07000">the paper about it</a>.</p>
+            
+            <p>The ad hoc leadership consensus is a straightforward <a href="https://arxiv.org/abs/1802.07000">CASPaxos</a> implementation expressed in a js-like pseudocode. The differences are <span class="retry-timeout">retrying timeouted commands</span>, <span class="vector-clocks">using vector clocks</span> to prevent execution of the same commands twice and <span class="batch">batching</span> to execute multiple commands per a replication cycle.</p>
 
             <p>The leaderless consensus is basically the same code with an <span class="inmem">exception</span> of synchronization of commands and read state before execution. The last bit is necessary because in case of a failure a consensus based replication may exist in a transient state where multiple outcomes are possible, without a synchronization different proposers executing the same command may choose different states and come with different outcomes.</p>
 
