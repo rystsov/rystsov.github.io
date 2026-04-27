@@ -109,7 +109,7 @@ cst: true
 
         <img src="{{ site.url }}/images/tso/consensus-out.png" width="600"/>
 
-        <p>But it suffers from the same problem. There are several designs of replicated storage, some are based on the idea of the stable leader and are subject to availability loss during re-election. No, it isn't another <a class="link" href="http://rystsov.info/2017/02/15/simple-consensus.html">rant on leader-based consensus</a>. Leaderless variants are also affected: the time (clock) requires only one register and a leader-equivalent is needed to reduce contention - if it fails we still are in the same situation.</p>
+        <p>But it suffers from the same problem. There are several designs of replicated storage, some are based on the idea of the stable leader and are subject to availability loss during re-election. No, it isn't another <a class="link" href="http://rystsov.com/2017/02/15/simple-consensus.html">rant on leader-based consensus</a>. Leaderless variants are also affected: the time (clock) requires only one register and a leader-equivalent is needed to reduce contention - if it fails we still are in the same situation.</p>
 
         <p>Instead of relying on consensus we go earlier in history and use an adaptation of <a class="link" href="https://en.wikipedia.org/wiki/Lamport_timestamps">Lamport clocks</a>.</p>
 

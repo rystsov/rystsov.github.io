@@ -30,7 +30,7 @@ marker: ramp
 		</tr>
 		<tr>
 			<th>Visualization</th>
-			<td><a class="link" href="http://rystsov.info/evil-scheduler/ramp.html">Step-by-step visualization of RAMP transactions</a></td>
+			<td><a class="link" href="http://rystsov.com/evil-scheduler/ramp.html">Step-by-step visualization of RAMP transactions</a></td>
 		</tr>
 	</table>
 
@@ -38,7 +38,7 @@ marker: ramp
 
 	<p>The algorithm is new and hasn't been noticed in the wild but there there are <a class="link" href="https://issues.apache.org/jira/browse/CASSANDRA-7056">rumors</a> that Cassandra may support it; Facebook also <a class="link" href="http://www.infoq.com/news/2014/06/facebook-apollo">reported</a> that they are working on the Apollo database which uses Paxos for replication and CRDT &amp; RAMP for cross shard transactions.</p>
 	
-	<a href="http://rystsov.info/evil-scheduler/ramp.html"><img src="{{ site.url }}/images/ramp.png" width="700"/></a>
+	<a href="http://rystsov.com/evil-scheduler/ramp.html"><img src="{{ site.url }}/images/ramp.png" width="700"/></a>
 
 	<h3>Problem</h3>
 
@@ -82,11 +82,11 @@ marker: ramp
 
 	<p>Of cause money is classical example where we need serializability, but our application is rather a reminder than bank, so we can relax the guaranties. For example, customers may understand that one of the simultaneous updates to the same data may be canceled, but they can't tolerate inconsistency between views of two customer on how much they own to each other. This is exactly the same guaranties which RAMP transactions provide.</p>
 
-	<p>In the <a class="link" href="rystsov.info/evil-scheduler/ramp.html">step-by-step RAMP visualization</a> I modeled a situation between customers who named just like some of the mathematicians I deeply admire: Evariste Galois, Euclid and Kurt Godel. They take a cab and go to a restaurant, Euclid pays for a ride, Godel handles the restaurant's check and at some point of time they decided to reflect this into the app.</p>
+	<p>In the <a class="link" href="rystsov.com/evil-scheduler/ramp.html">step-by-step RAMP visualization</a> I modeled a situation between customers who named just like some of the mathematicians I deeply admire: Evariste Galois, Euclid and Kurt Godel. They take a cab and go to a restaurant, Euclid pays for a ride, Godel handles the restaurant's check and at some point of time they decided to reflect this into the app.</p>
 
 	<h4>Postscriptum</h4>
 
-	<p>The <a class="link" href="http://rystsov.info/evil-scheduler/ramp.html">RAMP paper</a> described three flavors of RAMP transaction each with different runtime characteristics: RAMP-fast, RAMP-small and RAMP-hybrid. This post covers the first one, but the other are very similar, so if you got RAMP-fast I'm sure you'll get the other without problems.</p>
+	<p>The <a class="link" href="http://rystsov.com/evil-scheduler/ramp.html">RAMP paper</a> described three flavors of RAMP transaction each with different runtime characteristics: RAMP-fast, RAMP-small and RAMP-hybrid. This post covers the first one, but the other are very similar, so if you got RAMP-fast I'm sure you'll get the other without problems.</p>
 	
 	<p>Further reading:</p>
 	<ul>

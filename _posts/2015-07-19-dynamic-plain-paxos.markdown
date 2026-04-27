@@ -15,12 +15,12 @@ has_comments: true
 <p class="it">The article describes a generic way to prove the correctness of paxos-based distributes systems during the change of configuration and uses it to prove the correctness of membership changes.</p>
 
 <p><span class="abstract-h1">Article.</span>
-<a href="{{ site.url }}/files/dynamic-plain-paxos.pdf">http://rystsov.info/files/dynamic-plain-paxos.pdf</a></p>
+<a href="{{ site.url }}/files/dynamic-plain-paxos.pdf">http://rystsov.com/files/dynamic-plain-paxos.pdf</a></p>
 </div>
 
 <h2>Please don't read this paper, the proposed solution doesn't fit real world because it reduces node failure tolerance while changing membership, there're algorithms with better operating characteristics (Vertical Paxos, Raft's joint consensus)</h2>
 
-<p>But I encourage you to take a look on the <a class="link" href="http://rystsov.info/2016/01/05/raft-paxos.html">Best of both worlds: Raft's joint consensus + Single Decree Paxos</a> post where I described how to apply Raft's joint consensus to Single Decree Paxos (Synod). It's worth reading because some systems don't require the distibuted log abstraction so it's excessive to introduce it just to solve the membership change problem.</p>
+<p>But I encourage you to take a look on the <a class="link" href="http://rystsov.com/2016/01/05/raft-paxos.html">Best of both worlds: Raft's joint consensus + Single Decree Paxos</a> post where I described how to apply Raft's joint consensus to Single Decree Paxos (Synod). It's worth reading because some systems don't require the distibuted log abstraction so it's excessive to introduce it just to solve the membership change problem.</p>
 
 <!--In theory Paxos is very simple algorithm but in practice it is very hard to do it right. Partially it happens because the original paper omits non-essential sub-problems like:
  

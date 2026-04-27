@@ -23,7 +23,7 @@ marker: raft-paxos
 
 	<img src="{{ site.url }}/images/paxosraft.jpg" width="600"/>
 
-	<p>One might say that it isn't important because nobody wants to build systems on top of write-once distributed registers when they can use distributed logs. It's true, but <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">a little tweak</a> turns a write-once register into a variable one.</p>
+	<p>One might say that it isn't important because nobody wants to build systems on top of write-once distributed registers when they can use distributed logs. It's true, but <a class="link" href="http://rystsov.com/2015/09/16/how-paxos-works.html">a little tweak</a> turns a write-once register into a variable one.</p>
 
 	<p>Distributed variables may be more appealing to practitioners than distributed logs because variables are already powerful enough to be used in the real-world systems and they don't have log-related problems like log compaction.</p>
 
@@ -41,7 +41,7 @@ marker: raft-paxos
 
 	<h3>Haven't you written about it before?</h3>
 
-	<p>Yeah, I blogged about this problem and proposed a solution in the <a class="link" href="http://rystsov.info/2015/07/19/dynamic-plain-paxos.html">Dynamic Plain Paxos</a> post. The algorithm is correct, does the job, but has reliability issues. If we define reliability as the number of nodes that may fail without affecting the system, then during the transition phase of the the Dynamic Plain Paxos algorithm between $2f+1$ and $2f+2$ nodes reliability goes down from $f$ to $f-1$, and then restores back to $f$.</p>
+	<p>Yeah, I blogged about this problem and proposed a solution in the <a class="link" href="http://rystsov.com/2015/07/19/dynamic-plain-paxos.html">Dynamic Plain Paxos</a> post. The algorithm is correct, does the job, but has reliability issues. If we define reliability as the number of nodes that may fail without affecting the system, then during the transition phase of the the Dynamic Plain Paxos algorithm between $2f+1$ and $2f+2$ nodes reliability goes down from $f$ to $f-1$, and then restores back to $f$.</p>
 
 	<p>The Raft's joint consensus approach doesn't have this disadvantage and it's worth it to backport it to Single Decree Paxos.</p>
 
@@ -60,7 +60,7 @@ marker: raft-paxos
 <div class="brim alt principles1"><div class="content">
 	<div class="principle edge">
 		<div class="title">Principle 2. Reduced read quorums.</div>
-		<div>When a proposer receives majority of $f+1$ of the 'promises' it may choose to ignore one 'promise'. It doesn't affect consistency if the size of the cluster is even. I wrote about it and proved it in the <a class="link" href="http://rystsov.info/2015/12/30/read-write-quorums.html">Read write quorums in Paxos</a> post.</div>
+		<div>When a proposer receives majority of $f+1$ of the 'promises' it may choose to ignore one 'promise'. It doesn't affect consistency if the size of the cluster is even. I wrote about it and proved it in the <a class="link" href="http://rystsov.com/2015/12/30/read-write-quorums.html">Read write quorums in Paxos</a> post.</div>
 	</div>
 </div></div>
 
@@ -83,7 +83,7 @@ marker: raft-paxos
 
 	<p>To read a value, a proposer should execute the same algorithm but keep the value untouched on the 4th step.</p>
 
-	<p>Please, see the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a> for details.</p>
+	<p>Please, see the <a class="link" href="http://rystsov.com/2015/09/16/how-paxos-works.html">How Paxos works</a> for details.</p>
 
 	<h4>Joint consensus</h4>
 

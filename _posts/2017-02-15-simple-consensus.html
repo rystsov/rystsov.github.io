@@ -252,7 +252,7 @@ sdp: true
 
       <img class="vert" src="{{ site.url }}/images/family.jpg"/>
 
-      <p>I practiced logic and proved it in the <a class="link" href="http://rystsov.info/2015/09/16/how-paxos-works.html">How Paxos works</a> post. Then I built <a class="link" href="https://github.com/gryadka/js">Gryadka</a>, an experimental key/value storage of 500 line of code, and extensively tested it with the fault injection technique. Also Tobias Schottdorf and Greg Rogers independently model checked the protocol with TLA+: <a class="link" href="https://tschottdorf.github.io/single-decree-paxos-tla-compare-and-swap">[1]</a> and <a class="link" href="https://medium.com/@grogepodge/tla-specification-for-gryadka-c80cd625944e">[2]</a>.</p>
+      <p>I practiced logic and proved it in the <a class="link" href="http://rystsov.com/2015/09/16/how-paxos-works.html">How Paxos works</a> post. Then I built <a class="link" href="https://github.com/gryadka/js">Gryadka</a>, an experimental key/value storage of 500 line of code, and extensively tested it with the fault injection technique. Also Tobias Schottdorf and Greg Rogers independently model checked the protocol with TLA+: <a class="link" href="https://tschottdorf.github.io/single-decree-paxos-tla-compare-and-swap">[1]</a> and <a class="link" href="https://medium.com/@grogepodge/tla-specification-for-gryadka-c80cd625944e">[2]</a>.</p>
 
       <p>Besides the consistency testing, I measured the unavailability window by using the same method I used with Etcd, CockroachDB, RethinkDB and TiDB. Since Gryadka is based on a leaderless (multi-leader) consensus protocol it demonstrated zero downtime both when a node was crashed and when it was isolated.</p>
 
